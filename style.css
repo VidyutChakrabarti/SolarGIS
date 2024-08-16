@@ -1,0 +1,32 @@
+/* style.css */
+@keyframes gradient-move {
+    0% {
+        background-position: 200% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.gradient-text {
+    background: linear-gradient(to right, #ff3300, #7bfcfe, #ff7e5f);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-move 5s linear infinite;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.main .block-container {
+    padding-top: 4rem;
+    padding-bottom: 0rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+iframe {
+    max-height: 685px;
+}
