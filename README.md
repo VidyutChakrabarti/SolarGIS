@@ -11,3 +11,22 @@ To run the Streamlit app, open the terminal inside the folder and use the follow
 ```bash
 streamlit run app.py
 ```
+
+### Libraries installations: 
+```bash
+pip install streamlit earthengine-api geopy 
+```
+
+#### In Python interactive console run: 
+```python
+ee.Authenticate()
+```
+
+Check out the open-source dataset: [Open Buildings](https://sites.research.google/open-buildings/)
+
+#### Set up your google earth engine project: 
+Visit: [FeatureCollection](https://developers.google.com/earth-engine/datasets/catalog/GOOGLE_Research_open-buildings_v3_polygons) and go to the feature collection link where you will be directed to set up your Earth Engine account. Note your project name and pass it as the project parameter within the app.py: 
+```python
+ee.Initialize(project = '(your project name)')
+```
+
