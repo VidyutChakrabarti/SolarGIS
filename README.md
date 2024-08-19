@@ -12,9 +12,9 @@ To run the Streamlit app, open the terminal inside the folder and use the follow
 streamlit run app.py
 ```
 
-### Libraries installations: 
+### Library installations: 
 ```bash
-pip install streamlit earthengine-api geopy 
+pip install -r requirements.txt
 ```
 
 #### In Python interactive console run: 

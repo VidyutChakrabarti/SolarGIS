@@ -3,11 +3,15 @@ import folium
 from streamlit_folium import st_folium
 from folium.plugins import Draw, MiniMap
 import ee 
-from geopy.geocoders import Photon
+from geopy.geocoders import Photon 
+import threading
+from streamlit.runtime.scriptrunner import add_script_run_ctx
 
 st.set_page_config(layout="wide")
 with open("style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+ee.Initialize(project = 'ee-chakrabartivr')
 
 if 'lat' not in st.session_state:
     st.session_state.lat = 21.1537
@@ -18,7 +22,6 @@ if 'prev_rectangle_coords' not in st.session_state:
 if 'total_area' not in st.session_state:
     st.session_state.total_area = 0
 
-ee.Initialize(project='ee-chakrabartivr')
 buildings = ee.FeatureCollection("GOOGLE/Research/open-buildings/v3/polygons") 
 def get_rectangle_coordinates(data):
     if data and 'geometry' in data:
@@ -88,20 +91,26 @@ def add_feature_collection_to_map(m):
     ).add_to(m)
 
 add_feature_collection_to_map(m)
-minimap = MiniMap(toggle_display=True)
-minimap.add_to(m)
-
+# minimap = MiniMap(toggle_display=True)
+# minimap.add_to(m)
 def calculate_area(rectangle_coords):
     st.session_state.prev_rectangle_coords = rectangle_coords               
     bounding_box = ee.Geometry.Polygon([rectangle_coords])              
     buildings_in_bbox = buildings.filterBounds(bounding_box)
-    areas = buildings_in_bbox.aggregate_array('area_in_meters').getInfo()
-    for area in areas:
-        st.session_state.total_area += area
-    print("total area", st.session_state.total_area)
-    
+    num_buildings = buildings_in_bbox.size().getInfo()
+    if(num_buildings>100): 
+        st.sidebar.write("Area constraint violated. Choose a smaller area.")
+    else: 
+        areas = buildings_in_bbox.aggregate_sum('area_in_meters').getInfo()
+        st.session_state.total_area = areas
+        print("total area", st.session_state.total_area)
 
-output = st_folium(m, width='100%', height=690)
+def threaded_calculate_area(rectangle_coords):
+    thread = threading.Thread(target=calculate_area, args=(rectangle_coords,))
+    add_script_run_ctx(thread)
+    thread.start()
+
+output = st_folium(m, width='100%')
 if output.get('all_drawings') and isinstance(output.get('all_drawings'), list):
     if len(output['all_drawings']) == 1:
         drawing = output['all_drawings'][0]
@@ -113,7 +122,7 @@ if output.get('all_drawings') and isinstance(output.get('all_drawings'), list):
                 for side, coord in zip(sides, rectangle_coords):
                     st.sidebar.markdown(f"**{side}:** `{coord}`")
                 if rectangle_coords != st.session_state.prev_rectangle_coords:
-                    calculate_area(rectangle_coords)  
+                    threaded_calculate_area(rectangle_coords)  
     else:
         st.sidebar.write("Delete the previously selected bounding box.")        
 else:

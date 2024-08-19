@@ -1,0 +1,6 @@
+streamlit
+folium
+streamlit-folium
+geopy
+earthengine-api
+
