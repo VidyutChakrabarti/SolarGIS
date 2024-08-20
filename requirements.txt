@@ -3,4 +3,5 @@ folium
 streamlit-folium
 geopy
 earthengine-api
-
+shapely
+pyproj

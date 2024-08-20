@@ -6,6 +6,10 @@ import ee
 from geopy.geocoders import Photon 
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx
+from shapely.geometry import Polygon
+from pyproj import Transformer
+import shapely.ops as ops
+
 
 st.set_page_config(layout="wide")
 with open("style.css") as f:
@@ -39,7 +43,8 @@ if submit_button:
     try:
         loc = geolocator.geocode(location_name)
     except: 
-        st.write("Geocoding API rate exceeded, restrain from overusing open-source APIs. Reload and Try Again!")
+        loc = None
+        st.sidebar.write("Geocoding API rate exceeded, restrain from overusing open-source APIs. Reload and Try Again!")
     if loc:
         st.session_state.lat = loc.latitude
         st.session_state.lng = loc.longitude
@@ -93,20 +98,13 @@ def add_feature_collection_to_map(m):
 add_feature_collection_to_map(m)
 # minimap = MiniMap(toggle_display=True)
 # minimap.add_to(m)
-def calculate_area(rectangle_coords):
-    st.session_state.prev_rectangle_coords = rectangle_coords               
-    bounding_box = ee.Geometry.Polygon([rectangle_coords])              
-    buildings_in_bbox = buildings.filterBounds(bounding_box)
-    num_buildings = buildings_in_bbox.size().getInfo()
-    if(num_buildings>100): 
-        st.sidebar.write("Area constraint violated. Choose a smaller area.")
-    else: 
-        areas = buildings_in_bbox.aggregate_sum('area_in_meters').getInfo()
-        st.session_state.total_area = areas
-        print("total area", st.session_state.total_area)
+def calculate_area(buildings_in_bbox):
+    areas = buildings_in_bbox.aggregate_sum('area_in_meters').getInfo()
+    st.session_state.total_area = areas
+    print("rooftop area", st.session_state.total_area)
 
-def threaded_calculate_area(rectangle_coords):
-    thread = threading.Thread(target=calculate_area, args=(rectangle_coords,))
+def threaded_calculate_area(buildings_in_bbox):
+    thread = threading.Thread(target=calculate_area, args=(buildings_in_bbox,))
     add_script_run_ctx(thread)
     thread.start()
 
@@ -122,9 +120,21 @@ if output.get('all_drawings') and isinstance(output.get('all_drawings'), list):
                 for side, coord in zip(sides, rectangle_coords):
                     st.sidebar.markdown(f"**{side}:** `{coord}`")
                 if rectangle_coords != st.session_state.prev_rectangle_coords:
-                    threaded_calculate_area(rectangle_coords)  
+                    bbox_coords = [i for i in rectangle_coords]
+                    bbox_polygon = Polygon(bbox_coords)
+                    transformer = Transformer.from_crs("epsg:4326", "epsg:6933", always_xy=True)
+                    transformed_polygon = ops.transform(transformer.transform, bbox_polygon)
+                    area = transformed_polygon.area
+                    print("geodesic area", area)
+                    if(area>8000): 
+                       st.sidebar.markdown("<span style='color:red'>Area constraint violated. Choose a smaller area.</span>", unsafe_allow_html=True)
+                    else:
+                        st.session_state.prev_rectangle_coords = rectangle_coords               
+                        bounding_box = ee.Geometry.Polygon([rectangle_coords])              
+                        buildings_in_bbox = buildings.filterBounds(bounding_box)
+                        threaded_calculate_area(buildings_in_bbox)  
     else:
-        st.sidebar.write("Delete the previously selected bounding box.")        
+        st.sidebar.markdown("<span style='color:red'>Delete the previously selected bounding box.</span>", unsafe_allow_html=True)       
 else:
     st.sidebar.write("Draw a bounding box over the area you want the solar estimation for.") 
     st.session_state.total_area = 0  
