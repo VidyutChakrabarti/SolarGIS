@@ -7,9 +7,15 @@ from geopy.geocoders import Photon
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 from shapely.geometry import Polygon
+from shapely.geometry import shape
 from pyproj import Transformer
 import shapely.ops as ops
+import requests
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
+api_key = os.getenv('SOLCAST_API_KEY')
 
 st.set_page_config(layout="wide")
 with open("style.css") as f:
@@ -25,6 +31,8 @@ if 'prev_rectangle_coords' not in st.session_state:
     st.session_state.prev_rectangle_coords = None
 if 'total_area' not in st.session_state:
     st.session_state.total_area = 0
+if 'bbox_center' not in st.session_state:
+    st.session_state.bbox_center = None
 
 buildings = ee.FeatureCollection("GOOGLE/Research/open-buildings/v3/polygons") 
 def get_rectangle_coordinates(data):
@@ -133,16 +141,31 @@ if output.get('all_drawings') and isinstance(output.get('all_drawings'), list):
                         bounding_box = ee.Geometry.Polygon([rectangle_coords])              
                         buildings_in_bbox = buildings.filterBounds(bounding_box)
                         threaded_calculate_area(buildings_in_bbox)  
+                        st.session_state.bbox_center = bbox_polygon.centroid.coords[0]
     else:
         st.sidebar.markdown("<span style='color:red'>Delete the previously selected bounding box.</span>", unsafe_allow_html=True)       
 else:
     st.sidebar.write("Draw a bounding box over the area you want the solar estimation for.") 
-    st.session_state.total_area = 0  
+    st.session_state.total_area = 0 
+    st.session_state.bbox_center = None 
 
-with st.sidebar.form(key='paraform',clear_on_submit=True): 
+with st.sidebar.form(key='paraform', clear_on_submit=True): 
     solar_panels = st.slider("Select number of solar panels installed:", 0, 50, 2)
     solar_efficiency = st.slider("Solar panel efficiency (%):", 0, 100, 1)
-    sub = st.form_submit_button(label='Estimate') 
-
-
-
+    est = st.form_submit_button(label='Estimate') 
+    if est and st.session_state.bbox_center:
+        latitude = st.session_state.bbox_center[1]
+        longitude = st.session_state.bbox_center[0]
+        url = f'https://api.solcast.com.au/world_radiation/estimated_actuals?latitude={latitude}&longitude={longitude}&hours=1'
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {api_key}'
+        }
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            print(data)
+        else:
+            print(f'Error: {response.status_code}')
+        
+        
