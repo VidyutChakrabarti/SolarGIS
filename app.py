@@ -24,9 +24,9 @@ with open("style.css") as f:
 ee.Initialize(project = 'ee-chakrabartivr')
 
 if 'lat' not in st.session_state:
-    st.session_state.lat = 21.1537
+    st.session_state.lat = 21.1769
 if 'lng' not in st.session_state:
-    st.session_state.lng = 79.0729 
+    st.session_state.lng = 79.0612
 if 'prev_rectangle_coords' not in st.session_state:
     st.session_state.prev_rectangle_coords = None
 if 'total_area' not in st.session_state:
