@@ -1,0 +1,25 @@
+.container {
+    background-color: #2c3e50;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #ecf0f1;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.main .block-container {
+    padding-top: 3rem;
+    padding-bottom: 0rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.controls-container {
+    background-color: #34495e;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    color: #ecf0f1;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
