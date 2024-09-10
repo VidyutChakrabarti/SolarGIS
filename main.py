@@ -35,6 +35,8 @@ if 'total_area' not in st.session_state:
     st.session_state.total_area = 0
 if 'bbox_center' not in st.session_state:
     st.session_state.bbox_center = None
+if 'response' not in st.session_state:
+    st.session_state.response = None
 
 buildings = ee.FeatureCollection("GOOGLE/Research/open-buildings/v3/polygons") 
 def get_rectangle_coordinates(data):
@@ -158,7 +160,7 @@ with st.sidebar.form(key='paraform', clear_on_submit=True):
     if est and st.session_state.bbox_center:
         latitude = st.session_state.bbox_center[1]
         longitude = st.session_state.bbox_center[0]
-        url = f'https://api.solcast.com.au/world_radiation/estimated_actuals?latitude={latitude}&longitude={longitude}&hours=6'
+        url = f'https://api.solcast.com.au/world_radiation/estimated_actuals?latitude={latitude}&longitude={longitude}&hours=24'
         headers = {
             'Content-Type': 'application/json',
             'Authorization': f'Bearer {api_key}'
@@ -166,10 +168,11 @@ with st.sidebar.form(key='paraform', clear_on_submit=True):
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             data = response.json()
-            print(data)
+            st.session_state.response = data
+            switch_page("app")
         else:
             print(f'Error: {response.status_code}')
-        switch_page("app")
+        
 
     if est and st.session_state.bbox_center is None: 
         st.sidebar.error("Select a bouding box")
