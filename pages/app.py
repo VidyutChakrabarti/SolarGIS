@@ -7,7 +7,24 @@ import folium
 from streamlit_folium import st_folium
 
 st.set_page_config(layout="wide")
-#st.session_state.bbox_center = [79.0729,21.1537]
+if 'bbox_center' not in st.session_state: 
+    st.session_state.bbox_center = [79.0729, 21.1537]
+if 'response' not in st.session_state: 
+    st.warning("Your bounding box has changed. Kindly reselect.")
+    st.session_state.response = {'estimated_actuals':[{'ghi': 55, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T20:00:00.0000000Z', 'period': 'PT30M'},
+            {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T19:30:00.0000000Z', 'period': 'PT30M'},
+            {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T19:00:00.0000000Z', 'period': 'PT30M'},
+            {'ghi': 18, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 94, 'period_end': '2024-09-09T18:30:00.0000000Z', 'period': 'PT30M'},
+            {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T18:00:00.0000000Z', 'period': 'PT30M'},
+            {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T17:30:00.0000000Z', 'period': 'PT30M'},
+            {'ghi': 30, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 94, 'period_end': '2024-09-09T17:00:00.0000000Z', 'period': 'PT30M'},
+            {'ghi': 5, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 94, 'period_end': '2024-09-09T16:30:00.0000000Z', 'period': 'PT30M'},
+            {'ghi': 4, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 94, 'period_end': '2024-09-09T16:00:00.0000000Z', 'period': 'PT30M'},
+            {'ghi': 15, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T15:30:00.0000000Z', 'period': 'PT30M'},
+            {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 96, 'period_end': '2024-09-09T15:00:00.0000000Z', 'period': 'PT30M'},
+            {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 96, 'period_end': '2024-09-09T14:30:00.0000000Z', 'period': 'PT30M'},
+            {'ghi': 16, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T14:00:00.0000000Z', 'period': 'PT30M'}]}
+    
 with open("style2.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
@@ -50,21 +67,6 @@ with right_col:
     with st.form(key="graph"):
         st.markdown('<div class="container">Graph Display</div>', unsafe_allow_html=True)
         data = st.session_state.response['estimated_actuals']
-        # data =[ 
-        #     {'ghi': 55, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T20:00:00.0000000Z', 'period': 'PT30M'},
-        #     {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T19:30:00.0000000Z', 'period': 'PT30M'},
-        #     {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T19:00:00.0000000Z', 'period': 'PT30M'},
-        #     {'ghi': 18, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 94, 'period_end': '2024-09-09T18:30:00.0000000Z', 'period': 'PT30M'},
-        #     {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T18:00:00.0000000Z', 'period': 'PT30M'},
-        #     {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T17:30:00.0000000Z', 'period': 'PT30M'},
-        #     {'ghi': 30, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 94, 'period_end': '2024-09-09T17:00:00.0000000Z', 'period': 'PT30M'},
-        #     {'ghi': 5, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 94, 'period_end': '2024-09-09T16:30:00.0000000Z', 'period': 'PT30M'},
-        #     {'ghi': 4, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 94, 'period_end': '2024-09-09T16:00:00.0000000Z', 'period': 'PT30M'},
-        #     {'ghi': 15, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T15:30:00.0000000Z', 'period': 'PT30M'},
-        #     {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 96, 'period_end': '2024-09-09T15:00:00.0000000Z', 'period': 'PT30M'},
-        #     {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 96, 'period_end': '2024-09-09T14:30:00.0000000Z', 'period': 'PT30M'},
-        #     {'ghi': 16, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T14:00:00.0000000Z', 'period': 'PT30M'}
-        # ]
         times = [datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z").strftime('%H:%M') for entry in data]
         ghi_values = [entry["ghi"] for entry in data]
         df = pd.DataFrame({'Time': times, 'GHI': ghi_values})
