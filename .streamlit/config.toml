@@ -1,5 +1,5 @@
 [theme]
 base="dark"
-primaryColor="#fbff00"
+primaryColor="#FF4B4B"
 [client]
 showSidebarNavigation = false

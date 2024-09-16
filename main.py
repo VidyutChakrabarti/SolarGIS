@@ -10,10 +10,11 @@ from shapely.geometry import Polygon
 from shapely.geometry import shape
 from pyproj import Transformer
 import shapely.ops as ops
-import requests
 from dotenv import load_dotenv
 import os
 from streamlit_extras.switch_page_button import switch_page
+import asyncio
+import aiohttp
 
 load_dotenv()
 api_key = os.getenv('SOLCAST_API_KEY')
@@ -35,8 +36,32 @@ if 'total_area' not in st.session_state:
     st.session_state.total_area = 0
 if 'bbox_center' not in st.session_state:
     st.session_state.bbox_center = None
-if 'response' not in st.session_state:
-    st.session_state.response = None
+if 'response_radiation' not in st.session_state:
+    st.session_state.response_radiation = None
+if 'response_pv_power' not in st.session_state:
+    st.session_state.response_pv_power = None
+
+async def fetch_data(session, url, headers):
+    async with session.get(url, headers=headers) as response:
+        return await response.json()
+
+async def main_fetch(latitude, longitude, api_key):
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {api_key}'
+    }
+    
+    url_radiation = f'https://api.solcast.com.au/world_radiation/estimated_actuals?latitude={latitude}&longitude={longitude}&hours=24'
+    url_pv_power = f'https://api.solcast.com.au/world_pv_power/estimated_actuals?latitude={latitude}&longitude={longitude}&capacity=5&tilt=30&azimuth=0&hours=12'
+    
+    async with aiohttp.ClientSession() as session:
+        tasks = [
+            fetch_data(session, url_radiation, headers),
+            fetch_data(session, url_pv_power, headers)
+        ]
+        response_radiation, response_pv_power = await asyncio.gather(*tasks)
+        
+        return response_radiation, response_pv_power
 
 buildings = ee.FeatureCollection("GOOGLE/Research/open-buildings/v3/polygons") 
 def get_rectangle_coordinates(data):
@@ -153,27 +178,29 @@ else:
     st.session_state.total_area = 0 
     st.session_state.bbox_center = None 
 
-with st.sidebar.form(key='paraform', clear_on_submit=True): 
+with st.sidebar.form(key='paraform', clear_on_submit=True):
     solar_panels = st.slider("Select number of solar panels installed:", 0, 50, 2)
     solar_efficiency = st.slider("Solar panel efficiency (%):", 0, 100, 1)
-    est = st.form_submit_button(label='Estimate') 
+    est = st.form_submit_button(label='Estimate')
+
     if est and st.session_state.bbox_center:
         latitude = st.session_state.bbox_center[1]
         longitude = st.session_state.bbox_center[0]
-        url = f'https://api.solcast.com.au/world_radiation/estimated_actuals?latitude={latitude}&longitude={longitude}&hours=24'
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {api_key}'
-        }
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            data = response.json()
-            st.session_state.response = data
+        
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        response_radiation, response_pv_power = loop.run_until_complete(main_fetch(latitude, longitude, api_key))
+        
+        if response_radiation and response_pv_power:
+            st.session_state.response_radiation = response_radiation
+            st.session_state.response_pv_power = response_pv_power
+            print(response_pv_power)
             switch_page("app")
         else:
-            print(f'Error: {response.status_code}')
+            st.error('Error fetching data from APIs')
         
 
     if est and st.session_state.bbox_center is None: 
         st.sidebar.error("Select a bouding box")
+
 

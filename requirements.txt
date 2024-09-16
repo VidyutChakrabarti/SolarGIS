@@ -1,11 +1,14 @@
+aiohttp==3.10.5
 earthengine_api==0.1.419
 folium==0.17.0
 geopy==2.4.1
+langchain==0.3.0
+langchain_google_genai==2.0.0
+pandas==2.2.2
+plotly==5.23.0
 pyproj==3.6.1
 python-dotenv==1.0.1
-Requests==2.32.3
 Shapely==2.0.6
 streamlit==1.37.1
 streamlit_extras==0.4.7
 streamlit_folium==0.22.0
-toml

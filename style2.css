@@ -1,15 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap');
+
 .container {
-    background-color: #f9ff57;
+    background-color: #80ecff;
     padding: 10px;
     border-radius: 8px;
     margin-bottom: 20px;
     text-align: center;
     color: #000000;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: 'Merriweather', serif;
 }
 
 .main .block-container {
-    background-color: #1e1e1e;
+
     padding-top: 3rem;
     padding-bottom: 0rem;
     padding-left: 2rem;
@@ -17,10 +20,19 @@
 }
 
 .controls-container {
-    background-color: #f9ff57;
+    background-color: #80ecff;
     padding: 15px;
     border-radius: 8px;
     text-align: center;
     color: #000000;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: 'Merriweather', serif;
+}
+
+iframe {
+    max-height: 200px;
+}
+
+[data-testid="stForm"] {
+    background-color: rgb(64, 72, 76);
 }
