@@ -10,6 +10,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 import os
+from gradio_client import Client, handle_file
+
 load_dotenv()
 gemapi_key = os.getenv('GEMINI_API_KEY')
 
@@ -18,7 +20,8 @@ if 'bbox_center' not in st.session_state:
     st.session_state.bbox_center = [79.0729, 21.1537]
 if 'response_radiation' not in st.session_state: 
     st.warning("Your bounding box has changed. Kindly reselect.")
-    st.session_state.response_radiation = {'estimated_actuals':[{'ghi': 55, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T20:00:00.0000000Z', 'period': 'PT30M'},
+    st.session_state.response_radiation = {'estimated_actuals':
+            [{'ghi': 55, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T20:00:00.0000000Z', 'period': 'PT30M'},
             {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T19:30:00.0000000Z', 'period': 'PT30M'},
             {'ghi': 0, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T19:00:00.0000000Z', 'period': 'PT30M'},
             {'ghi': 18, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 94, 'period_end': '2024-09-09T18:30:00.0000000Z', 'period': 'PT30M'},
@@ -33,25 +36,25 @@ if 'response_radiation' not in st.session_state:
             {'ghi': 16, 'ebh': 0, 'dni': 0, 'dhi': 0, 'cloud_opacity': 95, 'period_end': '2024-09-09T14:00:00.0000000Z', 'period': 'PT30M'}]}
 if 'response_pv_power' not in st.session_state:
     st.session_state.response_pv_power = {'estimated_actuals': 
-                                          [{'pv_estimate': 1.686, 'period_end': '2024-09-16T09:00:00.0000000Z', 'period': 'PT30M'},
-                                            {'pv_estimate': 2.117, 'period_end': '2024-09-16T08:30:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 2.394, 'period_end': '2024-09-16T08:00:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 2.489, 'period_end': '2024-09-16T07:30:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 2.563, 'period_end': '2024-09-16T07:00:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 2.558, 'period_end': '2024-09-16T06:30:00.0000000Z', 'period': 'PT30M'},
-                                            {'pv_estimate': 2.51, 'period_end': '2024-09-16T06:00:00.0000000Z', 'period': 'PT30M'},
-                                            {'pv_estimate': 2.402, 'period_end': '2024-09-16T05:30:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 2.287, 'period_end': '2024-09-16T05:00:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 2.11, 'period_end': '2024-09-16T04:30:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 1.888, 'period_end': '2024-09-16T04:00:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 1.607, 'period_end': '2024-09-16T03:30:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 1.182, 'period_end': '2024-09-16T03:00:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 0.849, 'period_end': '2024-09-16T02:30:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 0.537, 'period_end': '2024-09-16T02:00:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 0.196, 'period_end': '2024-09-16T01:30:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 0.006, 'period_end': '2024-09-16T01:00:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 0, 'period_end': '2024-09-16T00:30:00.0000000Z', 'period': 'PT30M'}, 
-                                            {'pv_estimate': 0, 'period_end': '2024-09-16T00:00:00.0000000Z', 'period': 'PT30M'}]} 
+                    [{'pv_estimate': 1.686, 'period_end': '2024-09-16T09:00:00.0000000Z', 'period': 'PT30M'},
+                    {'pv_estimate': 2.117, 'period_end': '2024-09-16T08:30:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 2.394, 'period_end': '2024-09-16T08:00:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 2.489, 'period_end': '2024-09-16T07:30:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 2.563, 'period_end': '2024-09-16T07:00:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 2.558, 'period_end': '2024-09-16T06:30:00.0000000Z', 'period': 'PT30M'},
+                    {'pv_estimate': 2.51, 'period_end': '2024-09-16T06:00:00.0000000Z', 'period': 'PT30M'},
+                    {'pv_estimate': 2.402, 'period_end': '2024-09-16T05:30:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 2.287, 'period_end': '2024-09-16T05:00:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 2.11, 'period_end': '2024-09-16T04:30:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 1.888, 'period_end': '2024-09-16T04:00:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 1.607, 'period_end': '2024-09-16T03:30:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 1.182, 'period_end': '2024-09-16T03:00:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 0.849, 'period_end': '2024-09-16T02:30:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 0.537, 'period_end': '2024-09-16T02:00:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 0.196, 'period_end': '2024-09-16T01:30:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 0.006, 'period_end': '2024-09-16T01:00:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 0, 'period_end': '2024-09-16T00:30:00.0000000Z', 'period': 'PT30M'}, 
+                    {'pv_estimate': 0, 'period_end': '2024-09-16T00:00:00.0000000Z', 'period': 'PT30M'}]} 
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
@@ -145,11 +148,30 @@ with right_col:
             st.form_submit_button("Redraw",use_container_width=True)
 
     with st.form(key="image"):
-        st.markdown('<div class="controls-container">IMAGE CONTROLS</div>', unsafe_allow_html=True)
+        st.markdown('<div class="controls-container">SEGMENTATION CONTROLS</div>', unsafe_allow_html=True)
 
         uploaded_image = st.file_uploader("Upload an image for segmentation", type=["jpg", "png", "jpeg"])
+
         if uploaded_image:
-            st.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
+            save_dir = "uploaded_images"
+            os.makedirs(save_dir, exist_ok=True)
+            
+            file_path = os.path.join(save_dir, uploaded_image.name)
+            with open(file_path, "wb") as f:
+                f.write(uploaded_image.read())
+            with st.spinner("Your image is being segmented..."):
+                client = Client("https://evitsam.hanlab.ai/")
+                result = client.predict(
+                    param_0=handle_file(file_path),
+                    param_2=64,
+                    param_3=0.8,
+                    param_4=0.85,
+                    param_5=0.7,
+                    api_name="/lambda_3"
+                )
+                st.image(result, caption="Segmented Image", use_column_width=True)
+            os.remove(file_path)    
+
         c1,c2,c3,c4 = st.columns([2,1.8,0.1,1])
         with c1:
             st.slider("Adjust height:", 0, 100, 50)

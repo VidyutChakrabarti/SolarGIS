@@ -81,7 +81,8 @@ if submit_button:
         loc = geolocator.geocode(location_name)
     except: 
         loc = None
-        st.sidebar.write("Geocoding API rate exceeded, restrain from overusing open-source APIs. Reload and Try Again!")
+        st.sidebar.write("""Geocoding API rate exceeded,
+                          restrain from overusing open-source APIs. Reload and Try Again!""")
     if loc:
         st.session_state.lat = loc.latitude
         st.session_state.lng = loc.longitude
@@ -181,6 +182,8 @@ else:
 with st.sidebar.form(key='paraform', clear_on_submit=True):
     solar_panels = st.slider("Select number of solar panels installed:", 0, 50, 2)
     solar_efficiency = st.slider("Solar panel efficiency (%):", 0, 100, 1)
+    module_type = st.selectbox("Module Type:", ["Monocrystalline", "Polycrystalline"])
+    array_type = st.selectbox("Array Type:", ["Fixed (open rack)", "Tracking"])
     est = st.form_submit_button(label='Estimate')
 
     if est and st.session_state.bbox_center:
