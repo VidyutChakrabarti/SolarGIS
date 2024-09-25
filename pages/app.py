@@ -23,6 +23,8 @@ if 'response_radiation' not in st.session_state:
     st.session_state.response_radiation = radiance_data
 if 'response_pv_power' not in st.session_state:
     st.session_state.response_pv_power = pv_data
+if 'dsb2' not in st.session_state:
+    st.session_state.dsb2 = True
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
@@ -40,7 +42,7 @@ prompt_template = PromptTemplate(
 with open("style2.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-left_col,right_col = st.columns([1.3, 2])
+left_col,right_col = st.columns([1.9,2])
 
 def infer(pv_data):
     res = llm.invoke(prompt_template.format(pv_data=pv_data))
@@ -61,7 +63,7 @@ with st.sidebar:
 
 with left_col:
     with st.form(key="calc"):
-        st.markdown('<div class="container">Initial Calculations Display</div>', unsafe_allow_html=True)
+        st.markdown('<div class="container">Initial PV Output</div>', unsafe_allow_html=True)
         data = st.session_state.response_pv_power['estimated_actuals']
         times = [datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z").strftime('%H:%M') for entry in data]
         pv_estimates = [entry["pv_estimate"] for entry in data]
@@ -76,22 +78,35 @@ with left_col:
         
         fig.update_layout(
             yaxis=dict(range=[0, max(pv_estimates) + 1]),
-            xaxis=dict(tickmode='linear', tick0=0, dtick=1),
+            xaxis=dict(tickmode='linear', tick0=0, dtick=2, tickangle=-45),
             template='plotly_white',
+            height=360
         )
         st.plotly_chart(fig)
-        
         pv_data = df.to_json(orient='records')
-        # Re-estimated calculations after image segmentation display
-        st.markdown('<div class="container">Re-estimated Calculation After Image Segmentation Display</div>', unsafe_allow_html=True)
-        st.write("Placeholder for re-estimated calculations")
-        st.image('placeholder.png')
-        st.form_submit_button("re-calculate")
+        c1,c2 = st.columns([3,1])
+        with c1:
+            st.slider("Time range:", 1, 24, 24)
+        with c2:
+            st.markdown(" ")
+            st.markdown(" ")
+            st.form_submit_button("Re-calculate",use_container_width=True)
         infer(pv_data)
+
+    with st.form(key="img"):
+        st.markdown('<div class="container">Image uploader</div>', unsafe_allow_html=True)
+        uploaded_image = st.file_uploader("Upload an image for segmentation", type=["jpg", "png", "jpeg"]) 
+        c1, c2 = st.columns([2.5,1])
+        with c1:
+            st.selectbox("Type of image:", ['LiDar(Iphone)', 'Stereo']) 
+        with c2:
+            st.markdown(" ")
+            st.markdown(" ")
+            submit_image = st.form_submit_button("Submit Image", use_container_width=True)
 
 with right_col:
     with st.form(key="graph"):
-        st.markdown('<div class="container">Graph Display</div>', unsafe_allow_html=True)
+        st.markdown('<div class="container">Solar Irradiance Data</div>', unsafe_allow_html=True)
         data = st.session_state.response_radiation['estimated_actuals']
         times = [datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z").strftime('%H:%M') for entry in data]
         ghi_values = [entry["ghi"] for entry in data]
@@ -103,8 +118,9 @@ with right_col:
                     markers=True)
         fig.update_layout(
             yaxis=dict(range=[0, max(ghi_values) + 10]),
-            xaxis=dict(tickmode='linear', tick0=0, dtick=1),
+            xaxis=dict(tickmode='linear', tick0=0, dtick=2,tickangle=-50),
             template='plotly_white',
+            height=360
         )
         st.plotly_chart(fig)
         c1,c2 = st.columns([4,1])
@@ -115,12 +131,25 @@ with right_col:
             st.markdown(" ")
             st.form_submit_button("Redraw",use_container_width=True)
 
-    with st.form(key="image"):
+    with st.form(key="seg"):
         st.markdown('<div class="controls-container">SEGMENTATION CONTROLS</div>', unsafe_allow_html=True)
-
-        uploaded_image = st.file_uploader("Upload an image for segmentation", type=["jpg", "png", "jpeg"])
-
-        if uploaded_image:
+        st.markdown(" ")
+        col1, col2 = st.columns(2)
+        if uploaded_image and submit_image:
+            st.session_state.dsb2 = False
+            st.image(uploaded_image)
+        
+        with col1:
+            
+            prediction_iou = st.slider('Prediction IOU threshold (default=0.8)', min_value=0.0, max_value=1.0, value=0.8)
+            height = st.slider("Adjust height:", 0, 100, 50)
+        with col2:
+            stability_score = st.slider('Stability score threshold (default=0.85)', min_value=0.0, max_value=1.0, value=0.85)
+            box_nms = st.slider('Box NMS threshold (default=0.7)', min_value=0.0, max_value=1.0, value=0.7)
+            
+        segment_button = st.form_submit_button("Segment image", disabled=st.session_state.dsb2, use_container_width=True,help="Submit image to enable")
+       
+        if segment_button:
             file_path = uploaded_image.name
             with open(file_path, "wb") as f:
                 f.write(uploaded_image.read())
@@ -134,15 +163,16 @@ with right_col:
                     param_5=0.7,
                     api_name="/lambda_3"
                 )
-                st.image(result, caption="Segmented Image", use_column_width=True)
-            os.remove(file_path)   
+            os.remove(file_path)
 
-        c1,c2,c3,c4 = st.columns([2,1.8,0.1,1])
-        with c1:
-            st.slider("Adjust height:", 0, 100, 50)
-        with c2: 
-            st.selectbox("Type of image:", ['LiDar(Iphone)', 'Stereo'])
-        with c4:
-            st.markdown(" ")
-            st.markdown(" ")
-            st.form_submit_button("submit",use_container_width=True)
+if segment_button and result:
+    with left_col: 
+        st.image(uploaded_image, "Uploaded image") 
+    with right_col: 
+        st.image(result,"Segmented image")
+    
+
+
+        
+            
+        
