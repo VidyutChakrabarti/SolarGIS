@@ -1,0 +1,220 @@
+.block-container {
+    padding-top: 3rem;
+    padding-bottom: 0rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.card-0 {
+    background-color: rgba(0, 255, 255, 0.3);
+    border: 2px solid rgba(0, 255, 255, 1);
+    border-radius: 5px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 1);
+    transition: box-shadow 0.3s ease-in-out;
+    height: 500px;
+    padding: 10px;
+
+}
+
+.card-0:hover {
+    box-shadow: 0 0 30px rgba(0, 255, 255, 1);
+}
+
+.card-1 {
+    background-color: rgba(255, 0, 102, 0.3);
+    border: 2px solid rgba(255, 0, 0, 1);
+    border-radius: 5px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+    transition: box-shadow 0.3s ease-in-out;
+    height: 500px;
+    padding: 10px;
+
+
+}
+
+.card-1:hover {
+    box-shadow: 0 0 30px rgba(255, 0, 0, 1);
+}
+
+.card-2 {
+    background-color: rgba(128, 0, 128, 0.4);
+    border: 2px solid rgba(195, 0, 195, 1);
+    border-radius: 5px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 20px rgba(187, 0, 187, 0.8);
+    transition: box-shadow 0.3s ease-in-out;
+    height: 500px;
+    padding: 10px;
+
+}
+
+.card-2:hover {
+    box-shadow: 0 0 30px rgba(195, 0, 195, 1);
+}
+
+.card-3 {
+    background-color: rgba(147, 112, 219, 0.3);
+    border: 2px solid rgba(147, 112, 219, 1);
+    border-radius: 5px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 20px rgba(147, 112, 219, 0.8);
+    transition: box-shadow 0.3s ease-in-out;
+    height: 500px;
+    padding: 10px;
+
+}
+
+.card-3:hover {
+    box-shadow: 0 0 30px rgba(147, 112, 219, 1);
+}
+
+.card {
+    transition: transform 0.3s ease-in-out;
+}
+
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.card:hover {
+    transform: scale(1.1);
+    background: linear-gradient(270deg, #00ef9f, #5ffaff, #d20051, #8d3cff);
+    background-size: 400% 400%;
+    animation: gradientAnimation 6s linear infinite;
+    border: rgba(0, 255, 255, 1);
+}
+
+
+@keyframes slideInFromRight {
+    0% {
+        transform: translateX(10%);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutToLeft {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInFromLeft {
+    0% {
+        transform: translateX(-10%);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutToRight {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideLeft {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-104.5%);
+    }
+}
+
+@keyframes slideRight {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(104.5%);
+    }
+}
+
+.card-slide-in-from-right {
+    animation: slideInFromRight 0.4s ease-in-out forwards;
+}
+
+.card-slide-out-to-left {
+    animation: slideOutToLeft 0.5s ease-in-out forwards;
+}
+
+.card-slide-in-from-left {
+    animation: slideInFromLeft 0.4s ease-in-out forwards;
+}
+
+.card-slide-out-to-right {
+    animation: slideOutToRight 0.5s ease-in-out forwards;
+}
+
+.card-slide-left {
+    animation: slideLeft 0.5s ease-in-out forwards;
+}
+
+.card-slide-right {
+    animation: slideRight 0.5s ease-in-out forwards;
+}
+
+.stButton button {
+    border: 2px solid white;
+}
+
+@keyframes gradient-move {
+    0% {
+        background-position: 200% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.gradient-text {
+    background: linear-gradient(to right, #d20051, #8d3cff, #5ffaff, #00ef9f);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-move 5s linear infinite;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.img-container {
+    height: 230px;
+    width: 100%;
+}

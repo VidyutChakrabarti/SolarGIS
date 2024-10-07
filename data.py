@@ -278,3 +278,24 @@ radiance_data = {'estimated_actuals':
                                               {'ghi': 740, 'ebh': 375, 'dni': 411, 'dhi': 365, 'cloud_opacity': 3, 'period_end': '2024-09-22T06:00:00.0000000Z', 'period': 'PT30M'},
                                                 {'ghi': 734, 'ebh': 418, 'dni': 476, 'dhi': 316, 'cloud_opacity': 0, 'period_end': '2024-09-22T05:30:00.0000000Z', 'period': 'PT30M'},
                                                   {'ghi': 651, 'ebh': 311, 'dni': 374, 'dhi': 340, 'cloud_opacity': 5, 'period_end': '2024-09-22T05:00:00.0000000Z', 'period': 'PT30M'}]}
+
+
+
+table="""
+<table>
+        <tr>
+            <th>Object</th>
+            <th>Height</th>
+        </tr>
+        <tr>
+            <td>Building</td>
+            <td>50m</td>
+        </tr>
+        <tr>
+            <td>Tree</td>
+            <td>20m</td>
+        </tr>   
+</table>
+"""
+
+desc = ['trees : 4<br>wall : 1<br>pole : 6<br>', 'buildings : 6<br>trees : 5<br>wall : 3<br>pole : 5<br>', 'buildings : 2<br>trees : 2<br>pole : 1<br>', 'buildings : 5<br>trees : 5<br>wall : 1<br>pole : 3<br>']

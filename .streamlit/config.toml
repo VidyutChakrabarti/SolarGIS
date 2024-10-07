@@ -3,3 +3,5 @@ base="dark"
 primaryColor="#FF4B4B"
 [client]
 showSidebarNavigation = false
+[server]
+maxUploadSize = 32

@@ -197,7 +197,6 @@ with st.sidebar.form(key='paraform', clear_on_submit=True):
         if response_radiation and response_pv_power:
             st.session_state.response_radiation = response_radiation
             st.session_state.response_pv_power = response_pv_power
-            print(response_pv_power)
             switch_page("app")
         else:
             st.error('Error fetching data from APIs')
