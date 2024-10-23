@@ -38,9 +38,11 @@ if 'dsb2' not in st.session_state:
     st.session_state.dsb2 = True
 if 'segmented_images' not in st.session_state:
     st.session_state.segmented_images = []
+if 'upis' not in st.session_state: 
+    st.session_state.upis = []
 
 def upload_to_imgbb(image_path, api_key=os.getenv('IMGDB_API_KEY')):
-    url = f"https://api.imgbb.com/1/upload?expiration=360&key={api_key}"
+    url = f"https://api.imgbb.com/1/upload?expiration=3600&key={api_key}"
     with open(image_path, "rb") as img_file:
         response = requests.post(url, files={"image": img_file})
         if response.status_code == 200:
@@ -255,7 +257,8 @@ with col2:
        
             if len(st.session_state.segmented_images) == 4:
                 print(st.session_state.segmented_images)
-                switch_page('estimate')
+                st.session_state.upis = uploaded_images
+                switch_page('North')
 
 if upload_image and len(uploaded_images) == 4:
     with st.container(border=True):
@@ -297,4 +300,3 @@ else:
             with column2:
                 stability_score = st.slider('Stability score threshold (default=0.85)', min_value=0.0, max_value=1.0, value=0.85)
                 box_nms = st.slider('Box NMS threshold (default=0.7)', min_value=0.0, max_value=1.0, value=0.7)
-

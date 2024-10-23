@@ -4,26 +4,29 @@ import time
 from streamlit_folium import st_folium
 import folium 
 from data import *
+
 st.set_page_config(layout='wide')
 with open("est_style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 if 'bbox_center' not in st.session_state: 
     st.session_state.bbox_center = [79.0729, 21.1537]
+if 'segmented_images' not in st.session_state: 
+    st.session_state.segmented_images = []
 
-if 'segmented_images' in st.session_state:
+directions = ['North', 'West','South','East']
+if len(st.session_state.segmented_images)==4:
     images=[]
-    directions = ['North', 'West', 'South', 'East']
     for i,img in enumerate(st.session_state.segmented_images): 
         images.append({
-            'path': img, 'title': directions[i], 'desc':f'<b>OBJECTS DETECTED</b><br><br>{st.session_state.descriptions[i]}'
+            'path': img, 'title': directions[i], 'desc':f'<b>AUTO OBJECT DETECTION:</b><br><br>{st.session_state.descriptions[i]}'
         })
 
 else: 
     images = [
-        {'path': 'https://i.ibb.co/HHVC27b/image.webp', 'title': 'North', 'desc': f'<b>OBJECTS DETECTED</b><br><br>{desc[0]}'},
-        {'path': 'https://i.ibb.co/Ms3qnsT/image.webp', 'title': 'West', 'desc': f'<b>OBJECTS DETECTED</b><br><br>{desc[1]}'},
-        {'path': 'https://i.ibb.co/VSPRB57/image.webp', 'title': 'South', 'desc': f'<b>OBJECTS DETECTED</b><br><br>{desc[2]}'},
-        {'path': 'https://i.ibb.co/MP8YyXC/image.webp', 'title': 'East', 'desc': f'<b>OBJECTS DETECTED</b><br><br>{desc[3]}'}
+        {'path': 'https://i.ibb.co/V9hwsr6/image-with-boxes.png', 'title': directions[0] , 'desc': f'<b>AUTO OBJECT DETECTION:</b><br><br>{desc[0]}'},
+        {'path': 'https://i.ibb.co/f9VLsQg/image-with-boxes.png', 'title': directions[1], 'desc': f'<b>AUTO OBJECT DETECTION:</b><br><br>{desc[1]}'},
+        {'path': 'https://i.ibb.co/fknc8Nb/image-with-boxes.png', 'title': directions[2], 'desc': f'<b>AUTO OBJECT DETECTION:</b><br><br>{desc[2]}'},
+        {'path': 'https://i.ibb.co/j6pY66r/image-with-boxes.png', 'title': directions[3], 'desc': f'<b>AUTO OBJECT DETECTION:</b><br><br>{desc[3]}'},      
     ]
 
 
@@ -77,7 +80,7 @@ def update_animation_classes(direction):
         #print((st.session_state.start_index),(st.session_state.start_index + 3) % len(st.session_state.cards))
     elif direction == 'right':
         st.session_state.animation_class = ["card-slide-right"] * len(st.session_state.cards)
-        st.session_state.animation_class[(st.session_state.start_index + 3) % len(st.session_state.cards)] = 'card-slide-in-from-left'
+        st.session_state.animation_class[(st.session_state.start_index+len(st.session_state.cards)-1) % len(st.session_state.cards)] = 'card-slide-in-from-left'
         st.session_state.animation_class[(st.session_state.start_index+2)% len(st.session_state.cards)] = 'card-slide-out-to-right'
         #print((st.session_state.start_index + 3) % len(st.session_state.cards),(st.session_state.start_index+2)% len(st.session_state.cards))
 
@@ -146,8 +149,24 @@ else:
         with cols[i]:
             st.markdown(f'<div class="{card_class}">{st.session_state.cards[card_index]}</div>', unsafe_allow_html=True)
 
+st.divider()
+with st.form(key = 'df'):
+    st.write("**Manually selected objects and their estimated heights.** (Double click on cells for editing the dataframes)") 
+    expand = st.expander("Explainations") 
+    expand.write("▶ The heights & widths of the objects will be used to calculate the total shadow area that could be casted by an obstacle.")
+    expand.write("▶ Based upon the direction in which the object is situated respective to the site in consideration, we adjust the shadow dimensions automatically and recalculate total pv output based on partial shading.")
+    c1, c2 = st.columns([1,1])  
+    with c1:      
+        st.write("North:")
+        st.session_state.dt1 = st.data_editor(st.session_state.dt1)
+        st.write("West:")
+        st.session_state.dt2 = st.data_editor(st.session_state.dt2)
+    with c2:  
+        st.write("South:")
+        st.session_state.dt3 = st.data_editor(st.session_state.dt3)
+        st.write("East:")
+        st.session_state.dt4 = st.data_editor(st.session_state.dt4)
+    st.form_submit_button("Re-Estimate Solar prediction", use_container_width=True)
 
-
-    
-
+#st.json(st.session_state)
 
