@@ -40,6 +40,8 @@ if 'response_radiation' not in st.session_state:
     st.session_state.response_radiation = None
 if 'response_pv_power' not in st.session_state:
     st.session_state.response_pv_power = None
+if 'bbox_coords' not in st.session_state: 
+    st.session_state.bbox_coords = None
 
 async def fetch_data(session, url, headers):
     async with session.get(url, headers=headers) as response:
@@ -172,12 +174,14 @@ if output.get('all_drawings') and isinstance(output.get('all_drawings'), list):
                         buildings_in_bbox = buildings.filterBounds(bounding_box)
                         threaded_calculate_area(buildings_in_bbox)  
                         st.session_state.bbox_center = bbox_polygon.centroid.coords[0]
+                        st.session_state.bbox_coords = bbox_coords
     else:
         st.sidebar.markdown("<span style='color:red'>Delete the previously selected bounding box.</span>", unsafe_allow_html=True)       
 else:
     st.sidebar.write("Draw a bounding box over the area you want the solar estimation for.") 
     st.session_state.total_area = 0 
-    st.session_state.bbox_center = None 
+    st.session_state.bbox_center = None
+    st.session_state.bbox_coords = None 
 
 with st.sidebar.form(key='paraform', clear_on_submit=True):
     solar_panels = st.slider("Select number of solar panels installed:", 0, 50, 2)

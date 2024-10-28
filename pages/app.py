@@ -28,7 +28,7 @@ headers = {
 if 'descriptions' not in st.session_state: 
     st.session_state.descriptions = []
 if 'bbox_center' not in st.session_state: 
-    st.session_state.bbox_center = [79.0729, 21.1537]
+    st.session_state.bbox_center = [79.0710765, 21.153512]
 if 'response_radiation' not in st.session_state: 
     st.warning("Your bounding box has changed. Kindly reselect.")
     st.session_state.response_radiation = radiance_data
@@ -124,6 +124,9 @@ def object_detect(image_url):
             url = upload_to_imgbb('image_with_boxes.png')
             os.remove('image_with_boxes.png')
             st.session_state.segmented_images.append(url)
+with open("style2.css") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
@@ -137,9 +140,6 @@ prompt_template = PromptTemplate(
     input_variables=["pv_data"],
     template=system_prompt + "\n\n{pv_data}"
 )
-
-with open("style2.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 left_col,right_col = st.columns([1.9,2])
 
@@ -246,17 +246,17 @@ with col2:
                         placeholders.append(st.image(placeholder_image_url, use_column_width=True))
         segment = st.form_submit_button("Segment", use_container_width=True, disabled=st.session_state.dsb2, help="Upload all images first.")
         if segment and len(uploaded_images) == 4: 
-            with st.spinner("It may take us a while to segment, you will be automatically re-routed."):
-                for uploaded_image in uploaded_images:
-                    file_path = uploaded_image.name
-                    with open(file_path, "wb") as file:
-                        file.write(uploaded_image.getbuffer())
-                    img_url=upload_to_imgbb(file_path)
-                    object_detect(img_url)
-                    os.remove(file_path)
+            # with st.spinner("It may take us a while to segment, you will be automatically re-routed."):
+            #     for uploaded_image in uploaded_images:
+            #         file_path = uploaded_image.name
+            #         with open(file_path, "wb") as file:
+            #             file.write(uploaded_image.getbuffer())
+            #         img_url=upload_to_imgbb(file_path)
+            #         object_detect(img_url)
+            #         os.remove(file_path)
        
-            if len(st.session_state.segmented_images) == 4:
-                print(st.session_state.segmented_images)
+            # if len(st.session_state.segmented_images) == 4:
+            #     print(st.session_state.segmented_images)
                 st.session_state.upis = uploaded_images
                 switch_page('North')
 
@@ -273,7 +273,7 @@ if upload_image and len(uploaded_images) == 4:
             )
         c1,c2,c3,c4 = st.columns(4)
         with c1: 
-            height = st.slider("Adjust height:", 0, 100, 50)
+            height = st.slider("Adjust height(m):", 0, 100, 1)
         with c2:
             prediction_iou = st.slider('Prediction IOU threshold (default=0.8)', min_value=0.0, max_value=1.0, value=0.8)
         with c3:
@@ -295,7 +295,7 @@ else:
             
             column1, column2 = st.columns(2)
             with column1: 
-                height = st.slider("Adjust height:", 0, 100, 50)
+                height = st.slider("Adjust height:", 0, 100, 1)
                 prediction_iou = st.slider('Prediction IOU threshold (default=0.8)', min_value=0.0, max_value=1.0, value=0.8)
             with column2:
                 stability_score = st.slider('Stability score threshold (default=0.85)', min_value=0.0, max_value=1.0, value=0.85)

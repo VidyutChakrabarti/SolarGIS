@@ -1,25 +1,30 @@
+import pandas as pd 
+
 def alter_df(df):
-    # Ensure there are an equal number of 'rect' and 'line' rows
-    rect_rows = df[df['type'] == 'rect'].reset_index(drop=True)
-    line_rows = df[df['type'] == 'line'].reset_index(drop=True)
-    
-    if len(rect_rows) != len(line_rows):
-        raise ValueError("Unequal number of 'rect' and 'line' entries")
-    
-    for i in range(len(rect_rows)):
-        rect = rect_rows.loc[i]
-        line = line_rows.loc[i]
         
-        # Calculate the height of the line as proportional to 1 meter
-        line_height = line['height']
-        rect_h_in_meters = rect['height'] / line_height
-        rect_w_in_m = rect['width'] / line_height
-        
-        # Store the calculated meter height in the 'rect' row
-        df.loc[rect_rows.index[i], 'estimated_height'] = rect_h_in_meters
-        df.loc[rect_rows.index[i], 'estimated_width'] = rect_w_in_m
+    if 'rect_height' not in df.columns or 'line_height' not in df.columns:
+        raise ValueError("DataFrame must contain 'rect_height' and 'line_height' columns.")
     
-    # Drop all rows where 'type' is 'line'
-    df = df[df['type'] != 'line'].reset_index(drop=True)
+    df['estimated_height'] = df['rect_height'] / df['line_height']
     
     return df
+
+def combine_dataframes(dfs):
+    combined_data = {
+        'latitudes': [],
+        'longitudes': [],
+        'estimated_height': []
+    }
+
+    for df in dfs:
+        for _, row in df.iterrows():
+            coords = row['bbox_coords']  
+            latitudes = [coord[1] for polygon in coords for coord in polygon]  
+            longitudes = [coord[0] for polygon in coords for coord in polygon] 
+            
+            combined_data['latitudes'].append(latitudes)
+            combined_data['longitudes'].append(longitudes)
+            combined_data['estimated_height'].append(row['estimated_height'])
+
+    combined_df = pd.DataFrame(combined_data)
+    return combined_df

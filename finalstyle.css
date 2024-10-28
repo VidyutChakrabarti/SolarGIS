@@ -1,0 +1,39 @@
+.stButton>button {
+    width: 100%;
+    border: 2px solid rgb(255, 255, 255);
+}
+
+.main .block-container {
+    padding-top: 4rem;
+    padding-bottom: 0rem;
+    padding-left: 2rem;
+    padding-right: 1rem;
+}
+
+@keyframes gradient-move {
+    0% {
+        background-position: 200% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.gradient-text {
+    background: linear-gradient(to right, #d20051, #8d3cff, #5ffaff, #00ef9f);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-move 5s linear infinite;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+[data-testid="column"] {
+    background-color: rgb(44, 0, 83);
+    border: 2px solid rgb(155, 52, 245);
+    border-radius: 3%;
+    padding: 10px;
+}

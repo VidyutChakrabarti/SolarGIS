@@ -4,6 +4,8 @@ import time
 from streamlit_folium import st_folium
 import folium 
 from data import *
+from helperfuncs import combine_dataframes
+import pandas as pd
 
 st.set_page_config(layout='wide')
 with open("est_style.css") as f:
@@ -70,6 +72,9 @@ if 'animation_class' not in st.session_state:
 
 if 'direction' not in st.session_state:
     st.session_state.direction = ''
+
+if 'combined_df' not in st.session_state: 
+    st.session_state.combined_df = None
 
 def update_animation_classes(direction):
     
@@ -166,7 +171,14 @@ with st.form(key = 'df'):
         st.session_state.dt3 = st.data_editor(st.session_state.dt3)
         st.write("East:")
         st.session_state.dt4 = st.data_editor(st.session_state.dt4)
-    st.form_submit_button("Re-Estimate Solar prediction", use_container_width=True)
+    re_estimate = st.form_submit_button("Re-Estimate Solar prediction", use_container_width=True)
+    
+    if re_estimate:
+        st.session_state.bbox_coords = [[st.session_state.bbox_coords]]
+        main_df = pd.DataFrame({'bbox_coords': st.session_state.bbox_coords, 'rect_height': 230, 'line_height': 46, 'estimated_height': 0})
+        st.session_state.combined_df = combine_dataframes([main_df, st.session_state.dt1, st.session_state.dt2, st.session_state.dt3, st.session_state.dt4])
+        switch_page('final')
 
-#st.json(st.session_state)
+
+
 
