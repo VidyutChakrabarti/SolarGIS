@@ -1,4 +1,7 @@
 import pandas as pd 
+import asyncio
+import aiohttp
+import streamlit as st
 
 def alter_df(df):
         
@@ -28,3 +31,24 @@ def combine_dataframes(dfs):
 
     combined_df = pd.DataFrame(combined_data)
     return combined_df
+
+async def fetch_data(session, url, headers):
+    async with session.get(url, headers=headers) as response:
+        return await response.json()
+
+async def main_fetch(latitude, longitude, api_key):
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {api_key}'
+    }
+    
+    url_radiation = f'https://api.solcast.com.au/world_radiation/estimated_actuals?latitude={latitude}&longitude={longitude}&hours=24'
+    url_pv_power = f'https://api.solcast.com.au/world_pv_power/estimated_actuals?latitude={latitude}&longitude={longitude}&capacity=5&tilt=30&azimuth=0&hours=12'
+    
+    async with aiohttp.ClientSession() as session:
+        tasks = [
+            fetch_data(session, url_radiation, headers),
+            fetch_data(session, url_pv_power, headers)
+        ]
+        response_radiation, response_pv_power = await asyncio.gather(*tasks)
+        return response_radiation, response_pv_power

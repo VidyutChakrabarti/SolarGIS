@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 import os
 from streamlit_extras.switch_page_button import switch_page
 import asyncio
-import aiohttp
+from helperfuncs import main_fetch
 
 load_dotenv()
 api_key = os.getenv('SOLCAST_API_KEY')
@@ -43,27 +43,6 @@ if 'response_pv_power' not in st.session_state:
 if 'bbox_coords' not in st.session_state: 
     st.session_state.bbox_coords = None
 
-async def fetch_data(session, url, headers):
-    async with session.get(url, headers=headers) as response:
-        return await response.json()
-
-async def main_fetch(latitude, longitude, api_key):
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {api_key}'
-    }
-    
-    url_radiation = f'https://api.solcast.com.au/world_radiation/estimated_actuals?latitude={latitude}&longitude={longitude}&hours=24'
-    url_pv_power = f'https://api.solcast.com.au/world_pv_power/estimated_actuals?latitude={latitude}&longitude={longitude}&capacity=5&tilt=30&azimuth=0&hours=12'
-    
-    async with aiohttp.ClientSession() as session:
-        tasks = [
-            fetch_data(session, url_radiation, headers),
-            fetch_data(session, url_pv_power, headers)
-        ]
-        response_radiation, response_pv_power = await asyncio.gather(*tasks)
-        
-        return response_radiation, response_pv_power
 
 buildings = ee.FeatureCollection("GOOGLE/Research/open-buildings/v3/polygons") 
 def get_rectangle_coordinates(data):
@@ -196,15 +175,18 @@ with st.sidebar.form(key='paraform', clear_on_submit=True):
         
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        response_radiation, response_pv_power = loop.run_until_complete(main_fetch(latitude, longitude, api_key))
-        
+        try:
+            response_radiation, response_pv_power = loop.run_until_complete(main_fetch(latitude, longitude, api_key))
+            resp = response_pv_power['estimated_actuals']
+        except Exception as e:
+            st.error('Error fetching data from APIs')
+            response_radiation, response_pv_power = None, None
+
         if response_radiation and response_pv_power:
             st.session_state.response_radiation = response_radiation
             st.session_state.response_pv_power = response_pv_power
             switch_page("app")
-        else:
-            st.error('Error fetching data from APIs')
-        
+         
 
     if est and st.session_state.bbox_center is None: 
         st.sidebar.error("Select a bouding box")

@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
-from datetime import datetime
+from datetime import datetime, timedelta
 import plotly.express as px
 import pandas as pd
 import folium
@@ -12,7 +12,6 @@ import os
 from data import * 
 import requests
 import time
-import requests
 from PIL import Image, ImageDraw
 import random
 
@@ -145,7 +144,7 @@ left_col,right_col = st.columns([1.9,2])
 
 def infer(pv_data):
     res = llm.invoke(prompt_template.format(pv_data=pv_data))
-    st.sidebar.text_area('AI generated Inference:',res.content, height=400)
+    st.sidebar.text_area('AI generated Inference:',res.content, height=450)
 
 go_back = st.sidebar.button("Re-select Bounding box", use_container_width=True)
 
@@ -162,7 +161,7 @@ with left_col:
     with st.form(key="calc"):
         st.markdown('<div class="container">Initial PV Output</div>', unsafe_allow_html=True)
         data = st.session_state.response_pv_power['estimated_actuals']
-        times = [datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z").strftime('%H:%M') for entry in data]
+        times = [(datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z") + timedelta(hours=5, minutes=30)).strftime('%H:%M') for entry in data]
         pv_estimates = [entry["pv_estimate"] for entry in data]
         
         df = pd.DataFrame({'Time': times, 'PV Estimate': pv_estimates})
@@ -194,7 +193,7 @@ with right_col:
     with st.form(key="graph"):
         st.markdown('<div class="container">Solar Irradiance Data</div>', unsafe_allow_html=True)
         data = st.session_state.response_radiation['estimated_actuals']
-        times = [datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z").strftime('%H:%M') for entry in data]
+        times = [(datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z") + timedelta(hours=5, minutes=30)).strftime('%H:%M') for entry in data]
         ghi_values = [entry["ghi"] for entry in data]
         df = pd.DataFrame({'Time': times, 'GHI': ghi_values})
         df = df.sort_values('Time')

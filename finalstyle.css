@@ -6,7 +6,7 @@
 .main .block-container {
     padding-top: 4rem;
     padding-bottom: 0rem;
-    padding-left: 2rem;
+    padding-left: 1rem;
     padding-right: 1rem;
 }
 
@@ -33,7 +33,28 @@
 
 [data-testid="column"] {
     background-color: rgb(44, 0, 83);
-    border: 2px solid rgb(155, 52, 245);
-    border-radius: 3%;
+    border: 2px solid rgb(203, 145, 255);
     padding: 10px;
+    border-radius: 3%;
+}
+
+@keyframes borderMove {
+    0% {
+        border-image: linear-gradient(0deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+    }
+
+    50% {
+        border-image: linear-gradient(180deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+    }
+
+    100% {
+        border-image: linear-gradient(360deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+    }
+}
+
+#text_area_1 {
+    border: 2px solid;
+    border-image-slice: 1;
+    border-image: linear-gradient(90deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+    animation: borderMove 3s linear infinite;
 }
