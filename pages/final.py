@@ -300,39 +300,93 @@ with col2:
 
 with col1:
     with st.form('solar'):
-        data = st.session_state.response_pv_power['estimated_actuals']
-        times = [(datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z") + timedelta(hours=5, minutes=30)).strftime('%H:%M') for entry in data]
-        pv_estimates = [entry["pv_estimate"] for entry in data]
-        
-        df = pd.DataFrame({'Time': times, 'PV Estimate': pv_estimates})
-        df = df.sort_values('Time')
-        
-        adjusted_df = pd.merge(df, shadow_df, on='Time', how='inner')
-        
-        adjusted_df['Adjusted PV Estimate'] = adjusted_df.apply(
+        data_pv = st.session_state.response_pv_power['estimated_actuals']
+        times_pv = [
+            (datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z") + timedelta(hours=5, minutes=30)).strftime('%H:%M')
+            for entry in data_pv
+        ]
+        pv_estimates = [entry["pv_estimate"] for entry in data_pv]
+
+        df_pv = pd.DataFrame({'Time': times_pv, 'PV Estimate': pv_estimates})
+        df_pv = df_pv.sort_values('Time')
+        adjusted_df_pv = pd.merge(df_pv, shadow_df, on='Time', how='inner')
+        adjusted_df_pv['Adjusted PV Estimate'] = adjusted_df_pv.apply(
             lambda row: max(row['PV Estimate'] * (1 - row['Shadow Coverage (%)'] / 100), 0), axis=1
         )
 
+        # Slide 2 Data Preparation: Radiation
+        data_rad = st.session_state.response_radiation['estimated_actuals']
+        times_rad = [
+            (datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z") + timedelta(hours=5, minutes=30)).strftime('%H:%M')
+            for entry in data_rad
+        ]
+        ghi_values = [entry["ghi"] for entry in data_rad]
+
+        # DataFrame for times and estimates
+        df_rad = pd.DataFrame({'Time': times_rad, 'GHI': ghi_values})
+        df_rad = df_rad.sort_values('Time') 
+        adjusted_df_rad = pd.merge(df_rad, shadow_df, on='Time', how='inner')
+        adjusted_df_rad['Adjusted GHI'] = adjusted_df_rad.apply(
+            lambda row: max(row['GHI'] * (1 - row['Shadow Coverage (%)'] / 100), 0), axis=1
+        )
+
         fig = go.Figure()
+
         fig.add_trace(go.Scatter(
-            x=adjusted_df['Time'], y=adjusted_df['PV Estimate'], mode='lines+markers', name='Original PV Estimate',
-            line=dict(color='lightgreen'), marker=dict(size=6)
+            x=adjusted_df_pv['Time'], y=adjusted_df_pv['PV Estimate'],
+            mode='lines+markers', name='Original PV Estimate',
+            line=dict(color='lightgreen'), marker=dict(size=6),
+            visible=True  
         ))
 
         fig.add_trace(go.Scatter(
-            x=adjusted_df['Time'], y=adjusted_df['Adjusted PV Estimate'], mode='lines+markers', name='Adjusted PV Estimate',
-            line=dict(color='salmon'), marker=dict(size=6)
+            x=adjusted_df_pv['Time'], y=adjusted_df_pv['Adjusted PV Estimate'],
+            mode='lines+markers', name='Adjusted PV Estimate',
+            line=dict(color='salmon'), marker=dict(size=6),
+            visible=True  
+        ))
+
+        # Slide 2: Radiation Traces (initially hidden)
+        fig.add_trace(go.Scatter(
+            x=adjusted_df_rad['Time'], y=adjusted_df_rad['GHI'],
+            mode='lines+markers', name='Original GHI Estimate',
+            line=dict(color='lemonchiffon'), marker=dict(size=6),
+            visible=False  # Initially hidden on Slide 2
+        ))
+
+        fig.add_trace(go.Scatter(
+            x=adjusted_df_rad['Time'], y=adjusted_df_rad['Adjusted GHI'],
+            mode='lines+markers', name='Adjusted GHI Estimate',
+            line=dict(color='pink'), marker=dict(size=6),
+            visible=False  # Initially hidden on Slide 2
         ))
 
         fig.update_layout(
-            title="Estimated PV Power Output (with Partial Shading Impact)",
+            updatemenus=[
+                dict(
+                    type="buttons",
+                    direction="right",
+                    x=0.37,
+                    y=1.15,
+                    font=dict({'color':'mediumpurple'}),
+                    buttons=[
+                        dict(label="PV Power Output",
+                            method="update",
+                            args=[{"visible": [True, True, False, False]},  # Only show Slide 1 traces
+                                {"title": "Estimated PV Power Output (with Partial Shading Impact)"}]),
+                        dict(label="Irradiance",
+                            method="update",
+                            args=[{"visible": [False, False, True, True]},  # Only show Slide 2 traces
+                                {"title": "Estimated Irradiance (with Partial Shading Impact)"}])
+                    ]
+                )
+            ],
+            title="Estimated PV Power Output",
             xaxis_title="Time of the Day",
-            yaxis_title="PV Estimate (kW)",
+            yaxis_title="Power/Irradiance Estimate (kW)",
             xaxis=dict(dtick=2, tickangle=-45),
-            yaxis=dict(range=[0, max(adjusted_df['PV Estimate']) + 1]),
-            height=400
+            height=400,
         )
-
         st.plotly_chart(fig)
 
         refetch = st.form_submit_button('Re-Fetch')
@@ -371,7 +425,7 @@ def infer(pv_data):
     st.sidebar.text_area('AI generated Inference:',st.session_state.res.content, height=450)
 with st.sidebar:
     with st.spinner('AI will respond shortly...'):
-        infer(adjusted_df)    
+        infer(adjusted_df_pv)    
 
     
     
@@ -379,5 +433,4 @@ with st.sidebar:
     
         
             
-
 
