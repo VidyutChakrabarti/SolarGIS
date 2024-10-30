@@ -34,5 +34,6 @@ iframe {
 }
 
 [data-testid="stForm"] {
-    background-color: rgb(43, 48, 51);
+    background-color: rgba(86, 84, 80, 0.637);
+    border: 2px solid rgb(255, 255, 255);
 }

@@ -259,43 +259,23 @@ with col2:
                 st.session_state.upis = uploaded_images
                 switch_page('North')
 
-if upload_image and len(uploaded_images) == 4:
-    with st.container(border=True):
-        st.markdown(
-                """
-                <div style="text-align: center;">
-                    <p style="color: white;">Segmentation Controls</p>
-                    <hr style="border: 1px solid white; margin-top: 0;">
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-        c1,c2,c3,c4 = st.columns(4)
-        with c1: 
-            height = st.slider("Adjust height(m):", 0, 100, 1)
-        with c2:
-            prediction_iou = st.slider('Prediction IOU threshold (default=0.8)', min_value=0.0, max_value=1.0, value=0.8)
-        with c3:
-            stability_score = st.slider('Stability score threshold (default=0.85)', min_value=0.0, max_value=1.0, value=0.85)
-        with c4: 
-            box_nms = st.slider('Box NMS threshold (default=0.7)', min_value=0.0, max_value=1.0, value=0.7)
-else:
-    with col1: 
-        with st.container(border=True):
-            st.markdown(
-                """
-                <div style="text-align: center;">
-                    <p style="color: white;">Segmentation Controls</p>
-                    <hr style="border: 1px solid white; margin-top: 0;">
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-            
-            column1, column2 = st.columns(2)
-            with column1: 
-                height = st.slider("Adjust height:", 0, 100, 1)
-                prediction_iou = st.slider('Prediction IOU threshold (default=0.8)', min_value=0.0, max_value=1.0, value=0.8)
-            with column2:
-                stability_score = st.slider('Stability score threshold (default=0.85)', min_value=0.0, max_value=1.0, value=0.85)
-                box_nms = st.slider('Box NMS threshold (default=0.7)', min_value=0.0, max_value=1.0, value=0.7)
+if not upload_image and len(uploaded_images) != 4:
+    with col1:
+        youtube_code = '''
+        <div style="width:100%; height:auto; max-width:560px; overflow:hidden;">
+        <iframe id="ytplayer" 
+                src="https://www.youtube.com/embed/5XentgFYEfA?autoplay=1&mute=1&loop=1&playlist=5XentgFYEfA" 
+                frameborder="0" 
+                allow="autoplay; encrypted-media" 
+                allowfullscreen
+                style="width:100%; height:160px;">
+        </iframe>
+        </div>
+        '''
+        with st.form(key='height'):
+            st.write(youtube_code, unsafe_allow_html=True)
+            lcol, rcol = st.columns([2,1])
+            with lcol: 
+                st.slider('Reference height:', min_value=0, max_value=100, value=0, format='%.1f')
+            with rcol: 
+                st.form_submit_button('Change Reference height')

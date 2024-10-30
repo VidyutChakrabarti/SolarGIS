@@ -6,7 +6,7 @@ import streamlit as st
 def alter_df(df):
         
     if 'rect_height' not in df.columns or 'line_height' not in df.columns:
-        raise ValueError("DataFrame must contain 'rect_height' and 'line_height' columns.")
+        return pd.DataFrame()
     
     df['estimated_height'] = df['rect_height'] / df['line_height']
     

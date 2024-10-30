@@ -9,7 +9,7 @@ Predicting Rooftop solar energy potential using real time solar irradiance data 
 To run the Streamlit app, open the terminal inside the folder and use the following command:
 
 ```bash
-streamlit run main.py
+streamlit run solargis.py
 ```
 
 ### Library installations: 

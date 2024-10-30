@@ -65,7 +65,7 @@ st.sidebar.text_area("Workflow Instructions:", """
 3. Draw a reference line for height estimation. (the line drawn will be taken as a reference of how 1m looks like in the context of the object selected.)
                      
 4. Repeat as needed, then press "Next Page" to move forward.
-""", height=400)
+""", height=450)
 
 # Column layout
 c1, c2 = st.columns([1, 1])
@@ -188,6 +188,26 @@ st.markdown(
         width: 100%; 
         border: 2px solid rgba(255, 0, 0, 1);
     }
+       @keyframes borderMove {
+    0% {
+        border-image: linear-gradient(0deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+    }
+
+    50% {
+        border-image: linear-gradient(180deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+    }
+
+    100% {
+        border-image: linear-gradient(360deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+    }
+}
+
+#text_area_1 {
+    border: 2px solid;
+    border-image-slice: 1;
+    border-image: linear-gradient(90deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+    animation: borderMove 3s linear infinite;
+}
     </style>
     """,
     unsafe_allow_html=True

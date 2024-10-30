@@ -188,6 +188,26 @@ st.markdown(
         width: 100%; 
         border: 2px solid rgba(255, 0, 149, 1);
     }
+       @keyframes borderMove {
+    0% {
+        border-image: linear-gradient(0deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+    }
+
+    50% {
+        border-image: linear-gradient(180deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+    }
+
+    100% {
+        border-image: linear-gradient(360deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+    }
+}
+
+#text_area_1 {
+    border: 2px solid;
+    border-image-slice: 1;
+    border-image: linear-gradient(90deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+    animation: borderMove 3s linear infinite;
+}
     </style>
     """,
     unsafe_allow_html=True
