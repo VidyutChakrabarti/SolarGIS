@@ -144,7 +144,6 @@ def get_utm_zone(longitude):
 # Load DataFrame from session state
 df = st.session_state.combined_df
 
-# Extract main building and obstacles data
 main_building = df.iloc[0]
 obstacles = df.iloc[1:]
 
@@ -210,7 +209,7 @@ def calculate_shadow(obstacle_row, solar_zenith, solar_azimuth):
 
 shadow_coverage = []
 for idx, time in enumerate(times):
-    # Get solar zenith and azimuth for the current time
+    
     solar_zenith = solar_position['apparent_zenith'].iloc[idx]
     solar_azimuth = solar_position['azimuth'].iloc[idx]
     
@@ -280,21 +279,62 @@ with c2:
             layers=[layer, shadow_layer],
             tooltip=tooltip  
         ))
-col1, col2 = st.columns([2,1])
+col1, col2 = st.columns([1.9,1])
 with col2:
     fig = go.Figure()
     shadow_times = times.strftime('%H:%M')
     shadow_df = pd.DataFrame({'Time': shadow_times, 'Shadow Coverage (%)': shadow_coverage})
-    fig.add_trace(go.Scatter(x=times.strftime('%H:%M'), y=shadow_coverage, mode='lines+markers', line=dict(color='lavender')))
+    frames = [
+        go.Frame(
+            data=[go.Scatter(
+                x=shadow_times[:i+1], 
+                y=shadow_coverage[:i+1],
+                mode='lines+markers',  # Show both line and moving dot (marker)
+                fill='tozeroy',
+                line=dict(color='lavender')
+            )],
+            name=str(i)  # Frame name
+        ) 
+        for i in range(len(shadow_times))
+    ]
+
+    # Initial trace (showing all points at the start)
+    fig.add_trace(go.Scatter(
+        x=shadow_times, 
+        y=shadow_coverage, 
+        mode='lines+markers', 
+        fill='tozeroy', 
+        line=dict(color='lavender')
+    ))
+
+    # Define layout and animation settings
     fig.update_layout(
         title="Percentage of Rooftop Shadow Coverage",
         xaxis_title="Time of the Day",
         yaxis_title="Shadow Coverage Percentage (%)",
-        xaxis=dict(dtick=2,tickangle=-45),
-        height=350  
+        xaxis=dict(dtick=2, tickangle=-45),
+        height=400,
+        
+        # Animation settings
+        updatemenus=[{
+            'type': 'buttons',
+            'showactive': False,
+            'x': 0.3, 
+            'y': 1.15,
+            'direction': 'right', 
+            'buttons': [{
+                'label': 'Play',
+                'method': 'animate',
+                'args': [None, {'frame': {'duration': 500, 'redraw': True}, 'fromcurrent': True}]
+            }, {
+                'label': 'Pause',
+                'method': 'animate',
+                'args': [[None], {'frame': {'duration': 0, 'redraw': False}, 'mode': 'immediate'}]
+            }]
+        }]
     )
-    with st.container(border=True):
-        st.plotly_chart(fig)
+    fig.frames = frames
+    st.plotly_chart(fig) 
     st.selectbox('Type of connection between panels:', ['Series', 'Parallel'])
 
 
@@ -385,7 +425,7 @@ with col1:
             xaxis_title="Time of the Day",
             yaxis_title="Power/Irradiance Estimate (kW)",
             xaxis=dict(dtick=2, tickangle=-45),
-            height=400,
+            height=420,
         )
         st.plotly_chart(fig)
 
@@ -425,7 +465,9 @@ def infer(pv_data):
     st.sidebar.text_area('AI generated Inference:',st.session_state.res.content, height=450)
 with st.sidebar:
     with st.spinner('AI will respond shortly...'):
-        infer(adjusted_df_pv)    
+        infer(adjusted_df_pv) 
+
+
 
     
     
