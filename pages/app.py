@@ -15,7 +15,7 @@ import time
 from PIL import Image, ImageDraw
 import random
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 load_dotenv()
 gemapi_key = os.getenv('GEMINI_API_KEY')
 

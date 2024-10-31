@@ -36,14 +36,14 @@ async def fetch_data(session, url, headers):
     async with session.get(url, headers=headers) as response:
         return await response.json()
 
-async def main_fetch(latitude, longitude, api_key):
+async def main_fetch(latitude, longitude, api_key,npanels):
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {api_key}'
     }
     
     url_radiation = f'https://api.solcast.com.au/world_radiation/estimated_actuals?latitude={latitude}&longitude={longitude}&hours=24'
-    url_pv_power = f'https://api.solcast.com.au/world_pv_power/estimated_actuals?latitude={latitude}&longitude={longitude}&capacity=5&tilt=30&azimuth=0&hours=12'
+    url_pv_power = f'https://api.solcast.com.au/world_pv_power/estimated_actuals?latitude={latitude}&longitude={longitude}&capacity={npanels}&tilt=30&azimuth=0&hours=24'
     
     async with aiohttp.ClientSession() as session:
         tasks = [

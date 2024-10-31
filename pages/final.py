@@ -22,7 +22,7 @@ import os
 load_dotenv()
 api_key = os.getenv('SOLCAST_API_KEY')
 gemapi_key = os.getenv('GEMINI_API_KEY')
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 with open("finalstyle.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
@@ -64,6 +64,8 @@ if 'response_radiation' not in st.session_state:
     st.session_state.response_radiation = radiance_data
 if 'response_pv_power' not in st.session_state:
     st.session_state.response_pv_power = pv_data
+if 'npanels' not in st.session_state: 
+    st.session_state.npanels = 12
 
 combined_df = st.session_state.combined_df
 
@@ -436,7 +438,7 @@ with col1:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                response_radiation, response_pv_power = loop.run_until_complete(main_fetch(lati, longi, api_key))
+                response_radiation, response_pv_power = loop.run_until_complete(main_fetch(lati, longi, api_key,int(st.session_state.npanels)))
                 resp = response_pv_power['estimated_actauls']
             except Exception as e:
                 st.error('Error fetching data from APIs')

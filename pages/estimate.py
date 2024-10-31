@@ -7,7 +7,7 @@ from data import *
 from helperfuncs import combine_dataframes
 import pandas as pd
 
-st.set_page_config(layout='wide')
+st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 with open("est_style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 if 'bbox_center' not in st.session_state: 

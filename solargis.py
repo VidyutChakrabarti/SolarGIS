@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 
 st.markdown(
     """
@@ -70,10 +70,10 @@ VANTA.FOG({
   gyroControls: false,
   minHeight: 200.00,
   minWidth: 400.00,
-  highlightColor: 0xffa4,
-  midtoneColor: 0xffd1,
-  lowlightColor: 0xfff000,
-  baseColor: 0xfffaeb,
+    highlightColor: 0xffb3,
+  midtoneColor: 0xfff0,
+  lowlightColor: 0xff77,
+  baseColor: 0xebfffa,
   speed: 6.00
 });
 
@@ -93,8 +93,7 @@ function showNextCard() {
     currentCardIndex = (currentCardIndex + 1) % totalCards;
 }
 
-// Rotate cards every 3 seconds
-setInterval(showNextCard, 3000);
+setInterval(showNextCard, 4000);
 
 // Fading text animation function
 const text = "An app for solar potential estimation that accurately accounts for partial shading effects, delivering precise solar power predictions even in shaded environments.";
@@ -168,9 +167,9 @@ st.components.v1.html(html_code, height=600, scrolling=False)
 
 col1, col2 = st.columns([0.05, 1])
 with col2: 
-    st.subheader("Explore our Functionalities")
-c0,c1,c2,c3,c4, c5= st.columns([0.1,1,1,1,1, 0.1])
-import base64
+    st.markdown("""<p style="font-family: 'Times New Roman', serif; font-size: 2.1em;">• Explore our Functionalities</p>""", unsafe_allow_html=True)
+    st.markdown(" ")
+c0,c1,c2,c3,c4, c5= st.columns([0.07,1,1,1,1, 0.07])
 
 def video_html(video_path):
     return f"""
@@ -188,7 +187,7 @@ with c1:
     with st.form(key='seg'): 
         st.markdown(video_html("https://www.youtube.com/embed/56XRnIvUzvI?autoplay=1&mute=1&loop=1&playlist=56XRnIvUzvI"), unsafe_allow_html=True)
         st.markdown('<p style="text-align: center">Automatic Segmentation</p>', unsafe_allow_html=True)
-        if st.form_submit_button('Explore More ▶', use_container_width=True):
+        if st.form_submit_button('Begin Testing ▶', use_container_width=True):
             switch_page('main')
 
 with c2:
@@ -218,7 +217,7 @@ st.markdown(
     """
     <style>
 [data-testid="stForm"] {
-    background-color: rgba(86, 84, 80, 0.2);
+    background-color: rgba(86, 84, 80, 0.3);
     border: 2px solid rgb(57, 255, 212);
 }
 .stButton button {
@@ -233,6 +232,30 @@ st.markdown(
     border-bottom: 4px solid rgb(57, 255, 212);
     border-left: 4px solid rgb(57, 255, 212);
 }
+.stButton button:active {
+    background-color: black;
+}
+@keyframes borderMove {
+    0% {
+        border-image: linear-gradient(0deg, #00ef9f,#08fd14, #5ffaff, rgb(203, 145, 255)) 1;
+    }
+
+    50% {
+        border-image: linear-gradient(180deg, #00ef9f, #08fd14,#5ffaff,rgb(203, 145, 255)) 1;
+    }
+
+    100% {
+        border-image: linear-gradient(360deg, #00ef9f, #08fd14, #5ffaff,rgb(203, 145, 255)) 1;
+    }
+}
+
+[data-testid="stForm"] {
+    border: 2px solid;
+    border-image-slice: 1;
+    border-image: linear-gradient(90deg, #00ef9f,#08fd14, #5ffaff,rgb(203, 145, 255)) 1;
+    animation: borderMove 5s linear infinite;
+    border: 2px solid rgb(57, 255, 212);
+    box-shadow: 0px 0px 10px 4px rgba(57, 255, 212, 0.6);
 }
     </style>
     """,

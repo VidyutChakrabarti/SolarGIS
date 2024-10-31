@@ -18,7 +18,7 @@ from helperfuncs import main_fetch
 
 load_dotenv()
 api_key = os.getenv('SOLCAST_API_KEY')
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 
 ee.Initialize(project = 'ee-chakrabartivr')
 
@@ -33,7 +33,7 @@ if 'lng' not in st.session_state:
 if 'prev_rectangle_coords' not in st.session_state:
     st.session_state.prev_rectangle_coords = None
 if 'total_area' not in st.session_state:
-    st.session_state.total_area = 0
+    st.session_state.total_area = 2.0
 if 'bbox_center' not in st.session_state:
     st.session_state.bbox_center = None
 if 'response_radiation' not in st.session_state:
@@ -42,7 +42,10 @@ if 'response_pv_power' not in st.session_state:
     st.session_state.response_pv_power = None
 if 'bbox_coords' not in st.session_state: 
     st.session_state.bbox_coords = None
-
+if 'npanels' not in st.session_state: 
+    st.session_state.npanels = 12
+if 'panel_area' not in st.session_state: 
+    st.session_state.panel_area = 1.95
 
 buildings = ee.FeatureCollection("GOOGLE/Research/open-buildings/v3/polygons") 
 def get_rectangle_coordinates(data):
@@ -116,16 +119,25 @@ def add_feature_collection_to_map(m):
 
 add_feature_collection_to_map(m)
 
+def set_npanels(): 
+    if st.session_state.total_area>=st.session_state.panel_area:
+        st.session_state.npanels = int(st.session_state.total_area//st.session_state.panel_area)
+        print("no. of panels", st.session_state.npanels)
+    else:
+        st.session_state.npanels = 4
+    st.sidebar.write(f"**No. of max panels: {st.session_state.npanels}**")
 
 def calculate_area(buildings_in_bbox):
     areas = buildings_in_bbox.aggregate_sum('area_in_meters').getInfo()
     st.session_state.total_area = areas
     print("rooftop area", st.session_state.total_area)
+    set_npanels()
+    st.sidebar.write(f"**Rooftop area calculated: {st.session_state.total_area}**")
 
-def threaded_calculate_area(buildings_in_bbox):
-    thread = threading.Thread(target=calculate_area, args=(buildings_in_bbox,))
-    add_script_run_ctx(thread)
-    thread.start()
+# def threaded_calculate_area(buildings_in_bbox):
+#     thread = threading.Thread(target=calculate_area, args=(buildings_in_bbox,))
+#     add_script_run_ctx(thread)
+#     thread.start()
 
 output = st_folium(m, width='100%')
 if output.get('all_drawings') and isinstance(output.get('all_drawings'), list):
@@ -151,7 +163,7 @@ if output.get('all_drawings') and isinstance(output.get('all_drawings'), list):
                         st.session_state.prev_rectangle_coords = rectangle_coords               
                         bounding_box = ee.Geometry.Polygon([rectangle_coords])              
                         buildings_in_bbox = buildings.filterBounds(bounding_box)
-                        threaded_calculate_area(buildings_in_bbox)  
+                        calculate_area(buildings_in_bbox)  
                         st.session_state.bbox_center = bbox_polygon.centroid.coords[0]
                         st.session_state.bbox_coords = bbox_coords
     else:
@@ -163,9 +175,7 @@ else:
     st.session_state.bbox_coords = None 
 
 with st.sidebar.form(key='paraform', clear_on_submit=True):
-    solar_panels = st.slider("Select number of solar panels installed:", 0, 50, 2)
-    solar_efficiency = st.slider("Solar panel efficiency (%):", 0, 100, 1)
-    module_type = st.selectbox("Module Type:", ["Monocrystalline", "Polycrystalline"])
+    solar_efficiency = st.slider("Solar panel efficiency (%):", 0, 100, 24)
     array_type = st.selectbox("Array Type:", ["Fixed (open rack)", "Tracking"])
     est = st.form_submit_button(label='Estimate')
 
@@ -176,7 +186,7 @@ with st.sidebar.form(key='paraform', clear_on_submit=True):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            response_radiation, response_pv_power = loop.run_until_complete(main_fetch(latitude, longitude, api_key))
+            response_radiation, response_pv_power = loop.run_until_complete(main_fetch(latitude, longitude, api_key, int(st.session_state.npanels)))
             resp = response_pv_power['estimated_actuals']
         except Exception as e:
             st.error('Error fetching data from APIs')
@@ -191,3 +201,17 @@ with st.sidebar.form(key='paraform', clear_on_submit=True):
     if est and st.session_state.bbox_center is None: 
         st.sidebar.error("Select a bouding box")
 
+with st.sidebar.form(key='panelsize'):
+    panel_size = st.number_input("Specify panel size in sq meters", min_value=1.0, max_value=3.0, value=st.session_state.panel_area, step=0.05)
+    setsize = st.form_submit_button("Set Panel size")
+    if setsize: 
+        st.session_state.panel_area = float(panel_size)
+        set_npanels()
+        st.success(f"Panel size set to {st.session_state.panel_area}")
+
+with st.sidebar.form(key='np'):
+    solar_panels = st.slider("Select number of solar panels installed:", min_value=1, max_value=100, value= st.session_state.npanels)
+    setnp = st.form_submit_button("Set no. of Panels")
+    if setnp: 
+        st.session_state.npanels= int(solar_panels)
+        st.success(f"No. of panels set to {st.session_state.npanels}")

@@ -9,7 +9,7 @@ from folium.plugins import Draw
 import random
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-st.set_page_config(layout='wide')
+st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 from helperfuncs import alter_df
 
 # Initial session state setup
