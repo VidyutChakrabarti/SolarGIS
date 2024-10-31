@@ -130,7 +130,6 @@ with st.form(key='df'):
         reset_session_state()
         switch_page('West')
 
-
 # Page styling
 st.markdown(
     """

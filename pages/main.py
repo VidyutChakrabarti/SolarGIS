@@ -121,7 +121,7 @@ add_feature_collection_to_map(m)
 
 def set_npanels(): 
     if st.session_state.total_area>=st.session_state.panel_area:
-        st.session_state.npanels = int(st.session_state.total_area//st.session_state.panel_area)
+        st.session_state.npanels = min(100, int(st.session_state.total_area//st.session_state.panel_area))
         print("no. of panels", st.session_state.npanels)
     else:
         st.session_state.npanels = 4
@@ -210,7 +210,7 @@ with st.sidebar.form(key='panelsize'):
         st.success(f"Panel size set to {st.session_state.panel_area}")
 
 with st.sidebar.form(key='np'):
-    solar_panels = st.slider("Select number of solar panels installed:", min_value=1, max_value=100, value= st.session_state.npanels)
+    solar_panels = st.slider("Select number of solar panels installed:", min_value=1, max_value=400, value= st.session_state.npanels)
     setnp = st.form_submit_button("Set no. of Panels")
     if setnp: 
         st.session_state.npanels= int(solar_panels)

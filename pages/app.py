@@ -14,6 +14,8 @@ import requests
 import time
 from PIL import Image, ImageDraw
 import random
+import threading
+from streamlit.runtime.scriptrunner import add_script_run_ctx
 
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 load_dotenv()
@@ -40,6 +42,7 @@ if 'segmented_images' not in st.session_state:
 if 'upis' not in st.session_state: 
     st.session_state.upis = []
 
+# Helper functions
 def upload_to_imgbb(image_path, api_key=os.getenv('IMGDB_API_KEY')):
     url = f"https://api.imgbb.com/1/upload?expiration=3600&key={api_key}"
     with open(image_path, "rb") as img_file:
@@ -47,48 +50,43 @@ def upload_to_imgbb(image_path, api_key=os.getenv('IMGDB_API_KEY')):
         if response.status_code == 200:
             data = response.json().get("data")
             return data.get("url")
-        else:
-            return None
+        return None
 
 def random_color():
-            return "#{:06x}".format(random.randint(0, 0xFFFFFF))
+    return "#{:06x}".format(random.randint(0, 0xFFFFFF))
 
 def draw_boxes(image_path, results):
-            image = Image.open(image_path)
-            draw = ImageDraw.Draw(image)
-            category_colors = {}
-            category_counts = {}
-            for result in results:
-                bbox = result["bbox"]
-                label = result["category"]
-                if label not in category_colors:
-                    category_colors[label] = random_color()
-                    category_counts[label] = 1
-                else: 
-                    category_counts[label]+=1
-                color = category_colors[label]
-                draw.rectangle(bbox, outline=color, width=2)
-                draw.text((bbox[0], bbox[1]), label, fill=color)
-            s = ''
-            for category, count in category_counts.items():
-                s += f'{category} : {count}<br>'
-            st.session_state.descriptions.append(s)
-            os.remove(image_path)
-            return image
+    image = Image.open(image_path)
+    draw = ImageDraw.Draw(image)
+    category_colors = {}
+    category_counts = {}
+    for result in results:
+        bbox = result["bbox"]
+        label = result["category"]
+        if label not in category_colors:
+            category_colors[label] = random_color()
+            category_counts[label] = 1
+        else: 
+            category_counts[label] += 1
+        color = category_colors[label]
+        draw.rectangle(bbox, outline=color, width=2)
+        draw.text((bbox[0], bbox[1]), label, fill=color)
+    description = '<br>'.join([f'{cat}: {count}' for cat, count in category_counts.items()])
+    st.session_state.descriptions.append(description)
+    return image
 
-
-def object_detect(image_url): 
+def object_detect(image_url, image_save_path): 
     body = {
-    "image": image_url,
-    "prompts": [
-        {"type": "text", "text": "building"},
-        {"type": "text", "text": "trees"},
-        {"type": "text", "text": "wall"},
-        {"type": "text", "text": "pole"}
-    ],
-    "model": 'GroundingDino-1.5-Pro',
-    "targets": ["bbox"]
-}
+        "image": image_url,
+        "prompts": [
+            {"type": "text", "text": "building"},
+            {"type": "text", "text": "trees"},
+            {"type": "text", "text": "wall"},
+            {"type": "text", "text": "pole"}
+        ],
+        "model": 'GroundingDino-1.5-Pro',
+        "targets": ["bbox"]
+    }
 
     resp = requests.post('https://api.deepdataspace.com/tasks/detection', json=body, headers=headers)
 
@@ -96,9 +94,7 @@ def object_detect(image_url):
         json_resp = resp.json()
         task_uuid = json_resp["data"]["task_uuid"]
 
-        max_retries = 60
-        retry_count = 0
-        while retry_count < max_retries:
+        for _ in range(60):
             resp = requests.get(f'https://api.deepdataspace.com/task_statuses/{task_uuid}', headers=headers)
             if resp.status_code != 200:
                 break
@@ -106,23 +102,46 @@ def object_detect(image_url):
             if json_resp["data"]["status"] not in ["waiting", "running"]:
                 break
             time.sleep(1)
-            retry_count += 1
 
-        if json_resp["data"]["status"] == "failed":
-            print(f'failed resp: {json_resp}')
-        elif json_resp["data"]["status"] == "success":
+        if json_resp["data"]["status"] == "success":
             results = json_resp["data"]["result"]["objects"]
-            image_url = body["image"]
-            image_path = "local_image.jpg"
             response = requests.get(image_url)
-            with open(image_path, 'wb') as f:
+            with open(image_save_path, 'wb') as f:
                 f.write(response.content)
-            
-            image_with_boxes = draw_boxes(image_path, results)
-            image_with_boxes.save('image_with_boxes.png')
-            url = upload_to_imgbb('image_with_boxes.png')
-            os.remove('image_with_boxes.png')
+            image_with_boxes = draw_boxes(image_save_path, results)
+            image_with_boxes.save(image_save_path)
+            url = upload_to_imgbb(image_save_path)
             st.session_state.segmented_images.append(url)
+
+def process_image(uploaded_image, unique_id):
+    file_path = f"temp_{unique_id}_{uploaded_image.name}"
+    with open(file_path, "wb") as file:
+        file.write(uploaded_image.getbuffer())
+    img_url = upload_to_imgbb(file_path)
+    object_detect(img_url, file_path)
+    return file_path  
+
+def threaded_process_images(uploaded_images):
+    threads = []
+    file_paths = []
+
+    def thread_function(image, result_list, index):
+        file_path = process_image(image, unique_id=index)
+        result_list.append(file_path)
+
+    for i, image in enumerate(uploaded_images):
+        thread = threading.Thread(target=thread_function, args=(image, file_paths, i))
+        add_script_run_ctx(thread)
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    for file_path in file_paths:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
 with open("style2.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
@@ -245,19 +264,13 @@ with col2:
                         placeholders.append(st.image(placeholder_image_url, use_column_width=True))
         segment = st.form_submit_button("Segment", use_container_width=True, disabled=st.session_state.dsb2, help="Upload all images first.")
         if segment and len(uploaded_images) == 4: 
-            # with st.spinner("It may take us a while to segment, you will be automatically re-routed."):
-            #     for uploaded_image in uploaded_images:
-            #         file_path = uploaded_image.name
-            #         with open(file_path, "wb") as file:
-            #             file.write(uploaded_image.getbuffer())
-            #         img_url=upload_to_imgbb(file_path)
-            #         object_detect(img_url)
-            #         os.remove(file_path)
-       
-            # if len(st.session_state.segmented_images) == 4:
-            #     print(st.session_state.segmented_images)
-                st.session_state.upis = uploaded_images
-                switch_page('North')
+            with st.spinner("Restrain from re-freshing while we segment your images..."):
+                # st.session_state.segmented_images = []
+                # threaded_process_images(uploaded_images)
+                # if len(st.session_state.segmented_images) == 4:
+                #     print(st.session_state.segmented_images)
+                    st.session_state.upis = uploaded_images
+                    switch_page('North')
 
 if not upload_image and len(uploaded_images) != 4:
     with col1:

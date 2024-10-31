@@ -25,10 +25,10 @@ if len(st.session_state.segmented_images)==4:
 
 else: 
     images = [
-        {'path': 'https://i.ibb.co/V9hwsr6/image-with-boxes.png', 'title': directions[0] , 'desc': f'<b>AUTO OBJECT DETECTION:</b><br><br>{desc[0]}'},
-        {'path': 'https://i.ibb.co/f9VLsQg/image-with-boxes.png', 'title': directions[1], 'desc': f'<b>AUTO OBJECT DETECTION:</b><br><br>{desc[1]}'},
-        {'path': 'https://i.ibb.co/fknc8Nb/image-with-boxes.png', 'title': directions[2], 'desc': f'<b>AUTO OBJECT DETECTION:</b><br><br>{desc[2]}'},
-        {'path': 'https://i.ibb.co/j6pY66r/image-with-boxes.png', 'title': directions[3], 'desc': f'<b>AUTO OBJECT DETECTION:</b><br><br>{desc[3]}'},      
+        {'path': 'https://i.ibb.co/3rmjPhS/image-with-boxes.png', 'title': directions[0] , 'desc': f'<b>AUTO OBJECT DETECTION:</b><br><br>{desc[0]}'},
+        {'path': 'https://i.ibb.co/chT5FWZ/image-with-boxes.png', 'title': directions[1], 'desc': f'<b>AUTO OBJECT DETECTION:</b><br><br>{desc[1]}'},
+        {'path': 'https://i.ibb.co/DzqhQZH/image-with-boxes.png', 'title': directions[2], 'desc': f'<b>AUTO OBJECT DETECTION:</b><br><br>{desc[2]}'},
+        {'path': 'https://i.ibb.co/YRqDmz3/image-with-boxes.png', 'title': directions[3], 'desc': f'<b>AUTO OBJECT DETECTION:</b><br><br>{desc[3]}'},      
     ]
 
 
@@ -36,8 +36,11 @@ st.sidebar.markdown('<h1 class="gradient-text">Partial Shading Re-estimation</h1
 
 if st.sidebar.button("Go to Main Page", use_container_width=True):
     switch_page('main')
-if st.sidebar.button("Previous", use_container_width=True):
+if st.sidebar.button("Resubmit Images", use_container_width=True):
     switch_page('app')
+if st.sidebar.button("Reselect Obstacles", use_container_width=True):
+    switch_page('North')
+
 
 st.sidebar.write("Your selected bounding box:")
 m = folium.Map(location=[st.session_state.bbox_center[1], st.session_state.bbox_center[0]], zoom_start=14)
