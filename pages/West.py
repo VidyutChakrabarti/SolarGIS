@@ -12,7 +12,6 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 from helperfuncs import alter_df
 
-# Initial session state setup
 if 'bbox_coords' not in st.session_state: 
     st.session_state.bbox_coords = [[79.070953, 21.153387], [79.070953, 21.153637], [79.0712, 21.153637], [79.0712, 21.153387]]
 if 'bbox_center' not in st.session_state: 

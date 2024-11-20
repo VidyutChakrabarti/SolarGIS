@@ -212,6 +212,7 @@ with right_col:
     with st.form(key="graph"):
         st.markdown('<div class="container">Solar Irradiance Data</div>', unsafe_allow_html=True)
         data = st.session_state.response_radiation['estimated_actuals']
+        print(data)
         times = [(datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z") + timedelta(hours=5, minutes=30)).strftime('%H:%M') for entry in data]
         ghi_values = [entry["ghi"] for entry in data]
         df = pd.DataFrame({'Time': times, 'GHI': ghi_values})
@@ -265,10 +266,10 @@ with col2:
         segment = st.form_submit_button("Segment", use_container_width=True, disabled=st.session_state.dsb2, help="Upload all images first.")
         if segment and len(uploaded_images) == 4: 
             with st.spinner("Restrain from re-freshing while we segment your images..."):
-                # st.session_state.segmented_images = []
-                # threaded_process_images(uploaded_images)
-                # if len(st.session_state.segmented_images) == 4:
-                #     print(st.session_state.segmented_images)
+                st.session_state.segmented_images = []
+                threaded_process_images(uploaded_images)
+                if len(st.session_state.segmented_images) == 4:
+                    print(st.session_state.segmented_images)
                     st.session_state.upis = uploaded_images
                     switch_page('North')
 

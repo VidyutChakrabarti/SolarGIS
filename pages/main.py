@@ -4,7 +4,7 @@ from streamlit_folium import st_folium
 from folium.plugins import Draw
 import ee 
 from geopy.geocoders import Photon 
-import threading
+#import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 from shapely.geometry import Polygon
 from shapely.geometry import shape
@@ -46,6 +46,8 @@ if 'npanels' not in st.session_state:
     st.session_state.npanels = 12
 if 'panel_area' not in st.session_state: 
     st.session_state.panel_area = 1.95
+# if 'relocated' not in st.session_state: 
+#     st.session_state.relocated = False
 
 buildings = ee.FeatureCollection("GOOGLE/Research/open-buildings/v3/polygons") 
 def get_rectangle_coordinates(data):
@@ -71,6 +73,7 @@ if submit_button:
         st.session_state.lat = loc.latitude
         st.session_state.lng = loc.longitude
         print(f"geocoding query processed, results: {st.session_state.lat} {st.session_state.lng}.")
+        st.session_state.relocated = True
     else:
         st.sidebar.write("Location not found. Please try another name.")
         st.session_state.lat = 21.1537
@@ -78,6 +81,7 @@ if submit_button:
 
 map_location = [st.session_state.lat , st.session_state.lng] 
 m = folium.Map(location=map_location, zoom_start=17, tiles=None)
+
 google_dark_tile = folium.TileLayer(
     tiles="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",  #1yrs = s, t, r 
     attr='Google',
@@ -120,8 +124,10 @@ def add_feature_collection_to_map(m):
 add_feature_collection_to_map(m)
 
 def set_npanels(): 
-    if st.session_state.total_area>=st.session_state.panel_area:
-        st.session_state.npanels = min(100, int(st.session_state.total_area//st.session_state.panel_area))
+    panel_area = st.session_state.panel_area
+    panel_area+=10
+    if st.session_state.total_area>=panel_area:
+        st.session_state.npanels = min(100, int(st.session_state.total_area//panel_area))
         print("no. of panels", st.session_state.npanels)
     else:
         st.session_state.npanels = 4
