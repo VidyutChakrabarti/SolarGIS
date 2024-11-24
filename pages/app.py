@@ -12,10 +12,12 @@ import os
 from data import * 
 import requests
 import time
-from PIL import Image, ImageDraw
-import random
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx
+from streamlit_js_eval import streamlit_js_eval
+import json
+import time
+from helperfuncs import fetch_from_session_storage
 
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 load_dotenv()
@@ -26,21 +28,25 @@ headers = {
     "Token": os.getenv('DINO_TOKEN')
 }
 
+
 if 'descriptions' not in st.session_state: 
     st.session_state.descriptions = []
-if 'bbox_center' not in st.session_state: 
-    st.session_state.bbox_center = [79.0710765, 21.153512]
-if 'response_radiation' not in st.session_state: 
-    st.warning("Your bounding box has changed. Kindly reselect.")
-    st.session_state.response_radiation = radiance_data
-if 'response_pv_power' not in st.session_state:
-    st.session_state.response_pv_power = pv_data
+with st.empty():
+    if 'bbox_center' not in st.session_state: 
+        fetch_from_session_storage('boxc', 'bbox_center')
+        
+    if 'response_radiation' not in st.session_state:
+        fetch_from_session_storage('rad', 'response_radiation')
+
+    if 'response_pv_power' not in st.session_state:
+        fetch_from_session_storage('pvpow', 'response_pv_power')
+
 if 'dsb2' not in st.session_state:
     st.session_state.dsb2 = True
 if 'segmented_images' not in st.session_state:
     st.session_state.segmented_images = []
-if 'upis' not in st.session_state: 
-    st.session_state.upis = []
+if 'aires' not in st.session_state: 
+    st.session_state.aires = " "
 
 # Helper functions
 def upload_to_imgbb(image_path, api_key=os.getenv('IMGDB_API_KEY')):
@@ -52,30 +58,18 @@ def upload_to_imgbb(image_path, api_key=os.getenv('IMGDB_API_KEY')):
             return data.get("url")
         return None
 
-def random_color():
-    return "#{:06x}".format(random.randint(0, 0xFFFFFF))
-
-def draw_boxes(image_path, results):
-    image = Image.open(image_path)
-    draw = ImageDraw.Draw(image)
-    category_colors = {}
+def gen_des(results):
     category_counts = {}
     for result in results:
-        bbox = result["bbox"]
         label = result["category"]
-        if label not in category_colors:
-            category_colors[label] = random_color()
+        if label not in category_counts:
             category_counts[label] = 1
         else: 
             category_counts[label] += 1
-        color = category_colors[label]
-        draw.rectangle(bbox, outline=color, width=2)
-        draw.text((bbox[0], bbox[1]), label, fill=color)
     description = '<br>'.join([f'{cat}: {count}' for cat, count in category_counts.items()])
     st.session_state.descriptions.append(description)
-    return image
 
-def object_detect(image_url, image_save_path): 
+def object_detect(image_url): 
     body = {
         "image": image_url,
         "prompts": [
@@ -85,7 +79,7 @@ def object_detect(image_url, image_save_path):
             {"type": "text", "text": "pole"}
         ],
         "model": 'GroundingDino-1.5-Pro',
-        "targets": ["bbox"]
+        "targets": ["bbox", "mask"]
     }
 
     resp = requests.post('https://api.deepdataspace.com/tasks/detection', json=body, headers=headers)
@@ -94,7 +88,7 @@ def object_detect(image_url, image_save_path):
         json_resp = resp.json()
         task_uuid = json_resp["data"]["task_uuid"]
 
-        for _ in range(60):
+        for _ in range(20):
             resp = requests.get(f'https://api.deepdataspace.com/task_statuses/{task_uuid}', headers=headers)
             if resp.status_code != 200:
                 break
@@ -105,20 +99,16 @@ def object_detect(image_url, image_save_path):
 
         if json_resp["data"]["status"] == "success":
             results = json_resp["data"]["result"]["objects"]
-            response = requests.get(image_url)
-            with open(image_save_path, 'wb') as f:
-                f.write(response.content)
-            image_with_boxes = draw_boxes(image_save_path, results)
-            image_with_boxes.save(image_save_path)
-            url = upload_to_imgbb(image_save_path)
-            st.session_state.segmented_images.append(url)
+            print(json_resp["data"]["result"]["mask_url"])
+            gen_des(results)
+            st.session_state.segmented_images.append(json_resp["data"]["result"]["mask_url"])
 
 def process_image(uploaded_image, unique_id):
     file_path = f"temp_{unique_id}_{uploaded_image.name}"
     with open(file_path, "wb") as file:
         file.write(uploaded_image.getbuffer())
     img_url = upload_to_imgbb(file_path)
-    object_detect(img_url, file_path)
+    object_detect(img_url)
     return file_path  
 
 def threaded_process_images(uploaded_images):
@@ -147,7 +137,7 @@ with open("style2.css") as f:
 
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-flash",
+    model="gemini-1.5-pro",
     temperature=0, 
     api_key=gemapi_key)
 
@@ -161,9 +151,11 @@ prompt_template = PromptTemplate(
 
 left_col,right_col = st.columns([1.9,2])
 
-def infer(pv_data):
-    res = llm.invoke(prompt_template.format(pv_data=pv_data))
-    st.sidebar.text_area('AI generated Inference:',res.content, height=450)
+def infer(pv_data): 
+    if st.session_state.aires == " ":
+        res = llm.invoke(prompt_template.format(pv_data=pv_data)) 
+        st.session_state.aires = res.content 
+    st.sidebar.text_area('AI generated Inference:',st.session_state.aires, height=450)
 
 go_back = st.sidebar.button("Re-select Bounding box", use_container_width=True)
 
@@ -212,7 +204,6 @@ with right_col:
     with st.form(key="graph"):
         st.markdown('<div class="container">Solar Irradiance Data</div>', unsafe_allow_html=True)
         data = st.session_state.response_radiation['estimated_actuals']
-        print(data)
         times = [(datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z") + timedelta(hours=5, minutes=30)).strftime('%H:%M') for entry in data]
         ghi_values = [entry["ghi"] for entry in data]
         df = pd.DataFrame({'Time': times, 'GHI': ghi_values})
@@ -269,8 +260,17 @@ with col2:
                 st.session_state.segmented_images = []
                 threaded_process_images(uploaded_images)
                 if len(st.session_state.segmented_images) == 4:
-                    print(st.session_state.segmented_images)
                     st.session_state.upis = uploaded_images
+            
+                    streamlit_js_eval(
+                        js_expressions=f"sessionStorage.setItem('seg', `{json.dumps(st.session_state.segmented_images)}`);",
+                        key="save_seg"
+                    )
+                    streamlit_js_eval(
+                        js_expressions=f"sessionStorage.setItem('desc', `{json.dumps(st.session_state.descriptions)}`);",
+                        key="save_desc"
+                    )
+                    time.sleep(1)
                     switch_page('North')
 
 if not upload_image and len(uploaded_images) != 4:
@@ -293,3 +293,4 @@ if not upload_image and len(uploaded_images) != 4:
                 st.slider('Reference height:', min_value=0, max_value=100, value=0, format='%.1f')
             with rcol: 
                 st.form_submit_button('Change Reference height')
+#print(st.session_state.segmented_images)

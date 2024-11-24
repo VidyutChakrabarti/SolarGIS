@@ -6,14 +6,43 @@ import folium
 from data import *
 from helperfuncs import combine_dataframes
 import pandas as pd
+from helperfuncs import fetch_from_session_storage
+from streamlit_js_eval import streamlit_js_eval
+import time
 
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 with open("est_style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-if 'bbox_center' not in st.session_state: 
-    st.session_state.bbox_center = [79.0729, 21.1537]
-if 'segmented_images' not in st.session_state: 
-    st.session_state.segmented_images = []
+
+with st.empty():
+    if 'bbox_center' not in st.session_state: 
+        fetch_from_session_storage('boxc', 'bbox_center')
+
+    if 'segmented_images' not in st.session_state: 
+        fetch_from_session_storage('seg', 'segmented_images')
+
+    if 'bbox_coords' not in st.session_state: 
+        fetch_from_session_storage('boxcoords', 'bbox_coords', 6)
+
+    if 'dt1' not in st.session_state: 
+        fetch_from_session_storage('dt1', 'dt1')
+        st.session_state.dt1 = pd.DataFrame(st.session_state.dt1)
+
+    if 'dt2' not in st.session_state: 
+        fetch_from_session_storage('dt2', 'dt2')
+        st.session_state.dt2 = pd.DataFrame(st.session_state.dt2)
+
+    if 'dt3' not in st.session_state: 
+        fetch_from_session_storage('dt3', 'dt3')
+        st.session_state.dt3 = pd.DataFrame(st.session_state.dt3)
+
+    if 'dt4' not in st.session_state: 
+        fetch_from_session_storage('dt4', 'dt4')
+        st.session_state.dt4 = pd.DataFrame(st.session_state.dt4)
+
+    if 'descriptions' not in st.session_state: 
+        fetch_from_session_storage('desc','descriptions')
+    
 
 directions = ['North', 'West','South','East']
 if len(st.session_state.segmented_images)==4:
@@ -180,6 +209,11 @@ with st.form(key = 'df'):
         st.session_state.bbox_coords = [[st.session_state.bbox_coords]]
         main_df = pd.DataFrame({'bbox_coords': st.session_state.bbox_coords, 'rect_height': 230, 'line_height': 46, 'estimated_height': 0})
         st.session_state.combined_df = combine_dataframes([main_df, st.session_state.dt1, st.session_state.dt2, st.session_state.dt3, st.session_state.dt4])
+        streamlit_js_eval(
+                        js_expressions=f"sessionStorage.setItem('combined_df', `{st.session_state.combined_df.to_json(orient='records')}`);",
+                        key="save_combdf"
+                    )
+        time.sleep(0.5)
         switch_page('final')
 
 

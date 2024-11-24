@@ -7,26 +7,39 @@ import folium
 from streamlit_folium import st_folium
 from folium.plugins import Draw
 import random
+from streamlit_js_eval import streamlit_js_eval
+import time
+from helperfuncs import fetch_from_session_storage, load_image_to_tempfile, cleanup_temp_dir
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 from helperfuncs import alter_df
 
-# Initial session state setup
-if 'bbox_coords' not in st.session_state: 
-    st.session_state.bbox_coords = [[79.070953, 21.153387], [79.070953, 21.153637], [79.0712, 21.153637], [79.0712, 21.153387]]
+with st.empty():
+    if 'bbox_coords' not in st.session_state: 
+        fetch_from_session_storage('boxcoords', 'bbox_coords', 4)
+        
+    if 'segmented_images' not in st.session_state: 
+        fetch_from_session_storage('seg', 'segmented_images')
+    
 if 'bbox_center' not in st.session_state: 
     latitudes = [coord[1] for coord in st.session_state.bbox_coords]
     longitudes = [coord[0] for coord in st.session_state.bbox_coords]
     avg_lat = sum(latitudes) / len(latitudes)
     avg_lon = sum(longitudes) / len(longitudes)
     st.session_state.bbox_center = [avg_lon, avg_lat]
+
 if 'drawing_mode' not in st.session_state:
     st.session_state.drawing_mode = "Bounding Box"
 if 'annotations' not in st.session_state:
     st.session_state.annotations = []
 if 'upis' not in st.session_state: 
     st.session_state.upis = ["sampleimages/1north.jpeg", "sampleimages/3west-left.jpeg", "sampleimages/5south-left.jpeg", "sampleimages/7east-left.jpeg"]
+
+if 'cleanup' not in st.session_state: 
+    cleanup_temp_dir()
+    st.session_state.cleanup = True
+    
 if 'bbox_confirmed' not in st.session_state:
     st.session_state.bbox_confirmed = False
 if 'rectangle_drawn' not in st.session_state:
@@ -37,6 +50,11 @@ if 'new_box' not in st.session_state:
     st.session_state.new_box = None
 if 'dt3' not in st.session_state: 
     st.session_state.dt3 = None
+
+if 'south_tempfile' not in st.session_state:
+    temp_image_path = load_image_to_tempfile(st.session_state.segmented_images[2])
+    if temp_image_path:
+        st.session_state.south_tempfile = temp_image_path
 
 def random_color():
     colors = {
@@ -67,10 +85,8 @@ st.sidebar.text_area("Workflow Instructions:", """
 4. Repeat as needed, then press "Next Page" to move forward.
 """, height=450)
 
-# Column layout
-c1, c2 = st.columns([1, 1])
+c1, c2 = st.columns([1.2, 1])
 
-# Display map and select bounding box coordinates in Column 2
 with c2:
     st.write("**Step 1: Select Bounding Box on Map**")
     m = folium.Map(location=[st.session_state.bbox_center[1], st.session_state.bbox_center[0]], zoom_start=18, tiles=None)
@@ -84,9 +100,8 @@ with c2:
         st.session_state.new_box = output["all_drawings"][-1]["geometry"]["coordinates"]
         st.session_state.drawing_mode = "Rectangle"
 
-
 with c1:
-    image = Image.open(st.session_state.upis[2])  
+    image = Image.open(st.session_state.south_tempfile)
     canvas_result = st_canvas(
         fill_color=random_color(),
         stroke_width=2,
@@ -94,7 +109,7 @@ with c1:
         background_image=image,
         update_streamlit=True,
         drawing_mode="rect" if st.session_state.drawing_mode == "Rectangle" else "line",
-        width=530,
+        width=575,
         key="canvas",
     )
 
@@ -125,13 +140,18 @@ with st.form(key='df'):
     if next_page:
         st.session_state.annotations = pd.DataFrame(st.session_state.annotations)
         st.session_state.dt3 = alter_df(st.session_state.annotations)
+
+        streamlit_js_eval(
+                        js_expressions=f"sessionStorage.setItem('dt3', `{st.session_state.dt3.to_json(orient='records')}`);",
+                        key="save_dt3"
+                    )
+        time.sleep(1)
         st.session_state.new_box = None
         st.session_state.annotations = []
         reset_session_state()
+        cleanup_temp_dir()
         switch_page('East')
 
-
-# Page styling
 st.markdown(
     """
     <style>

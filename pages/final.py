@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 import os
+from helperfuncs import fetch_from_session_storage, yearly_estimate
 
 load_dotenv()
 api_key = os.getenv('SOLCAST_API_KEY')
@@ -37,40 +38,27 @@ youtube_code = '''
   </iframe>
 </div>
 '''
+
 if 'infer' not in st.session_state:
     st.session_state.infer = True
 if 'res' not in st.session_state: 
     st.session_state.res = None
-
-if 'combined_df' not in st.session_state:
-    st.session_state.combined_df = pd.DataFrame({
-        'latitudes': [
-            [28.613092, 28.613215, 28.613215, 28.613092],  
-            [28.613092, 28.613215, 28.613215, 28.613092],   
-            [28.613292, 28.613415, 28.613415, 28.613292],   
-            [28.613192, 28.613315, 28.613315, 28.613192],   
-            [28.612992, 28.613115, 28.613115, 28.612992],   
-        ],
-        'longitudes': [
-            [77.210643, 77.210643, 77.210814, 77.210814],   
-            [77.210843, 77.210843, 77.211014, 77.211014],   
-            [77.210743, 77.210743, 77.210914, 77.210914],   
-            [77.210843, 77.210843, 77.211014, 77.211014],   
-            [77.210543, 77.210543, 77.210714, 77.210714],   
-        ],
-        'estimated_height': [0, 10.2, 9.8, 8.5, 24.5]  # Heights of structures
-    })
-if 'response_radiation' not in st.session_state:
-    st.session_state.response_radiation = radiance_data
-if 'response_pv_power' not in st.session_state:
-    st.session_state.response_pv_power = pv_data
 if 'npanels' not in st.session_state: 
     st.session_state.npanels = 12
+placeholder = st.empty()
+with placeholder:
+    if 'response_radiation' not in st.session_state:
+        fetch_from_session_storage('rad', 'response_radiation')
+    if 'response_pv_power' not in st.session_state:
+        fetch_from_session_storage('pvpow', 'response_pv_power')    
+    if 'combined_df' not in st.session_state:
+        fetch_from_session_storage('combined_df', 'combined_df')
+        st.session_state.combined_df = pd.DataFrame(st.session_state.combined_df)    
+    if 'bbox_center' not in st.session_state:
+        fetch_from_session_storage('boxc', 'bbox_center')
 
+placeholder.empty()
 combined_df = st.session_state.combined_df
-
-if 'bbox_center' not in st.session_state:
-    st.session_state.bbox_center = [77.210643,28.613215]
 
 # Function to generate random colors for each building
 def generate_color():
@@ -448,7 +436,7 @@ with col1:
                 st.session_state.response_pv_power = response_pv_power
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-flash",
+    model="gemini-1.5-pro",
     temperature=0, 
     api_key=gemapi_key)
 
@@ -467,7 +455,9 @@ def infer(pv_data):
     st.sidebar.text_area('AI generated Inference:',st.session_state.res.content, height=450)
 with st.sidebar:
     with st.spinner('AI will respond shortly...'):
-        infer(adjusted_df_pv) 
+        infer(adjusted_df_pv)
+
+yearly_estimate() 
 
 
 

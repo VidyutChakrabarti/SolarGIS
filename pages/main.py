@@ -15,6 +15,9 @@ import os
 from streamlit_extras.switch_page_button import switch_page
 import asyncio
 from helperfuncs import main_fetch
+from streamlit_js_eval import streamlit_js_eval
+import json
+import time
 
 load_dotenv()
 api_key = os.getenv('SOLCAST_API_KEY')
@@ -45,7 +48,7 @@ if 'bbox_coords' not in st.session_state:
 if 'npanels' not in st.session_state: 
     st.session_state.npanels = 12
 if 'panel_area' not in st.session_state: 
-    st.session_state.panel_area = 1.95
+    st.session_state.panel_area = 3.95
 # if 'relocated' not in st.session_state: 
 #     st.session_state.relocated = False
 
@@ -125,7 +128,7 @@ add_feature_collection_to_map(m)
 
 def set_npanels(): 
     panel_area = st.session_state.panel_area
-    panel_area+=10
+    panel_area+=16
     if st.session_state.total_area>=panel_area:
         st.session_state.npanels = min(100, int(st.session_state.total_area//panel_area))
         print("no. of panels", st.session_state.npanels)
@@ -201,6 +204,26 @@ with st.sidebar.form(key='paraform', clear_on_submit=True):
         if response_radiation and response_pv_power:
             st.session_state.response_radiation = response_radiation
             st.session_state.response_pv_power = response_pv_power
+            response_pv_power = json.dumps(response_pv_power)
+            response_radiation = json.dumps(response_radiation)
+            streamlit_js_eval(
+                js_expressions=f"sessionStorage.setItem('rad', `{response_radiation}`);",
+                key="save_rad"
+            )
+            streamlit_js_eval(
+                js_expressions=f"sessionStorage.setItem('boxcoords', `{json.dumps(st.session_state.bbox_coords)}`);",
+                key="save_coords"
+            )
+            streamlit_js_eval(
+                js_expressions=f"sessionStorage.setItem('pvpow', `{response_pv_power}`);",
+                key="save_pv"
+            )
+            streamlit_js_eval(
+                js_expressions=f"sessionStorage.setItem('boxc', `{json.dumps(st.session_state.bbox_center)}`);",
+                key="save_long"
+            )
+
+            time.sleep(1)
             switch_page("app")
          
 
@@ -208,7 +231,7 @@ with st.sidebar.form(key='paraform', clear_on_submit=True):
         st.sidebar.error("Select a bouding box")
 
 with st.sidebar.form(key='panelsize'):
-    panel_size = st.number_input("Specify panel size in sq meters", min_value=1.0, max_value=3.0, value=st.session_state.panel_area, step=0.05)
+    panel_size = st.number_input("Specify panel size in sq meters", min_value=1.0, max_value=16.0, value=st.session_state.panel_area, step=0.05)
     setsize = st.form_submit_button("Set Panel size")
     if setsize: 
         st.session_state.panel_area = float(panel_size)
@@ -221,3 +244,6 @@ with st.sidebar.form(key='np'):
     if setnp: 
         st.session_state.npanels= int(solar_panels)
         st.success(f"No. of panels set to {st.session_state.npanels}")
+
+
+

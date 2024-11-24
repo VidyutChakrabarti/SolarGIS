@@ -55,11 +55,11 @@
 }
 
 .card-3 {
-    background-color: rgba(147, 112, 219, 0.3);
-    border: 2px solid rgba(147, 112, 219, 1);
+    background-color: rgba(247, 243, 17, 0.3);
+    border: 2px solid rgba(247, 243, 17, 1);
     border-radius: 5px;
     margin-bottom: 10px;
-    box-shadow: 0 0 20px rgba(147, 112, 219, 0.8);
+    box-shadow: 0 0 20px rgba(247, 243, 17, 0.8);
     transition: box-shadow 0.3s ease-in-out;
     height: 500px;
     padding: 10px;
@@ -67,7 +67,7 @@
 }
 
 .card-3:hover {
-    box-shadow: 0 0 30px rgba(147, 112, 219, 1);
+    box-shadow: 0 0 30px rgb(188, 136, 255);
 }
 
 .card-7 {
