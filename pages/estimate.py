@@ -15,9 +15,6 @@ with open("est_style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 with st.empty():
-    if 'bbox_center' not in st.session_state: 
-        fetch_from_session_storage('boxc', 'bbox_center')
-
     if 'segmented_images' not in st.session_state: 
         fetch_from_session_storage('seg', 'segmented_images')
 
@@ -43,7 +40,13 @@ with st.empty():
     if 'descriptions' not in st.session_state: 
         fetch_from_session_storage('desc','descriptions')
     
-
+if 'bbox_center' not in st.session_state: 
+    latitudes = [coord[1] for coord in st.session_state.bbox_coords]
+    longitudes = [coord[0] for coord in st.session_state.bbox_coords]
+    avg_lat = sum(latitudes) / len(latitudes)
+    avg_lon = sum(longitudes) / len(longitudes)
+    st.session_state.bbox_center = [avg_lon, avg_lat]
+    
 directions = ['North', 'West','South','East']
 if len(st.session_state.segmented_images)==4:
     images=[]

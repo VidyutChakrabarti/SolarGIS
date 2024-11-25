@@ -7,7 +7,6 @@ import folium
 from streamlit_folium import st_folium
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
-from dotenv import load_dotenv
 import os
 from data import * 
 import requests
@@ -20,26 +19,29 @@ import time
 from helperfuncs import fetch_from_session_storage
 
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
-load_dotenv()
-gemapi_key = os.getenv('GEMINI_API_KEY')
+
+gemapi_key = st.secrets['api_keys']['GEMINI_API_KEY']
 
 headers = {
     "Content-Type": "application/json",
-    "Token": os.getenv('DINO_TOKEN')
+    "Token": st.secrets['api_keys']['DINO_TOKEN']
 }
 
 
 if 'descriptions' not in st.session_state: 
     st.session_state.descriptions = []
 with st.empty():
-    if 'bbox_center' not in st.session_state: 
-        fetch_from_session_storage('boxc', 'bbox_center')
-        
-    if 'response_radiation' not in st.session_state:
-        fetch_from_session_storage('rad', 'response_radiation')
+    try:
+        if 'bbox_center' not in st.session_state: 
+            fetch_from_session_storage('boxc', 'bbox_center')
+            
+        if 'response_radiation' not in st.session_state:
+            fetch_from_session_storage('rad', 'response_radiation')
 
-    if 'response_pv_power' not in st.session_state:
-        fetch_from_session_storage('pvpow', 'response_pv_power')
+        if 'response_pv_power' not in st.session_state:
+            fetch_from_session_storage('pvpow', 'response_pv_power')
+    except Exception as e: 
+        switch_page('main')
 
 if 'dsb2' not in st.session_state:
     st.session_state.dsb2 = True
@@ -49,7 +51,7 @@ if 'aires' not in st.session_state:
     st.session_state.aires = " "
 
 # Helper functions
-def upload_to_imgbb(image_path, api_key=os.getenv('IMGDB_API_KEY')):
+def upload_to_imgbb(image_path, api_key=st.secrets['api_keys']['IMGDB_API_KEY']):
     url = f"https://api.imgbb.com/1/upload?expiration=3600&key={api_key}"
     with open(image_path, "rb") as img_file:
         response = requests.post(url, files={"image": img_file})

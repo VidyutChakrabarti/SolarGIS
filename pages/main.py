@@ -4,27 +4,22 @@ from streamlit_folium import st_folium
 from folium.plugins import Draw
 import ee 
 from geopy.geocoders import Photon 
-#import threading
-from streamlit.runtime.scriptrunner import add_script_run_ctx
 from shapely.geometry import Polygon
 from shapely.geometry import shape
 from pyproj import Transformer
 import shapely.ops as ops
-from dotenv import load_dotenv
-import os
 from streamlit_extras.switch_page_button import switch_page
 import asyncio
 from helperfuncs import main_fetch
 from streamlit_js_eval import streamlit_js_eval
 import json
 import time
+import requests
 
-load_dotenv()
-api_key = os.getenv('SOLCAST_API_KEY')
+api_key = st.secrets['api_keys']['SOLCAST_API_KEY']
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 
 ee.Initialize(project = 'ee-chakrabartivr')
-
 
 with open("style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -49,8 +44,8 @@ if 'npanels' not in st.session_state:
     st.session_state.npanels = 12
 if 'panel_area' not in st.session_state: 
     st.session_state.panel_area = 3.95
-# if 'relocated' not in st.session_state: 
-#     st.session_state.relocated = False
+if 'relocated' not in st.session_state:
+    st.session_state.relocated = False
 
 buildings = ee.FeatureCollection("GOOGLE/Research/open-buildings/v3/polygons") 
 def get_rectangle_coordinates(data):
@@ -78,7 +73,8 @@ if submit_button:
         print(f"geocoding query processed, results: {st.session_state.lat} {st.session_state.lng}.")
         st.session_state.relocated = True
     else:
-        st.sidebar.write("Location not found. Please try another name.")
+        st.sidebar.write("Location not found. Try using other names.")
+        st.session_state.relocated = False
         st.session_state.lat = 21.1537
         st.session_state.lng = 79.0729
 
@@ -143,10 +139,12 @@ def calculate_area(buildings_in_bbox):
     set_npanels()
     st.sidebar.write(f"**Rooftop area calculated: {st.session_state.total_area}**")
 
-# def threaded_calculate_area(buildings_in_bbox):
-#     thread = threading.Thread(target=calculate_area, args=(buildings_in_bbox,))
-#     add_script_run_ctx(thread)
-#     thread.start()
+if st.session_state.relocated == True: 
+    folium.Marker(
+        location=map_location,
+        popup=f"{location_name.upper()},\nLatitude: {st.session_state.lat},\nLongitude: {st.session_state.lng}",  
+        icon=folium.Icon(color="purple", icon="info-sign"),  
+    ).add_to(m)
 
 output = st_folium(m, width='100%')
 if output.get('all_drawings') and isinstance(output.get('all_drawings'), list):

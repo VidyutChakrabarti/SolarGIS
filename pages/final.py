@@ -11,18 +11,14 @@ import pytz
 from pyproj import Proj, Transformer
 from streamlit_extras.switch_page_button import switch_page
 import asyncio
-from helperfuncs import main_fetch
 from data import *
 import plotly.express as px
-from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
-import os
-from helperfuncs import fetch_from_session_storage, yearly_estimate
+from helperfuncs import main_fetch, fetch_from_session_storage, yearly_estimate
 
-load_dotenv()
-api_key = os.getenv('SOLCAST_API_KEY')
-gemapi_key = os.getenv('GEMINI_API_KEY')
+api_key = st.secrets['api_keys']['SOLCAST_API_KEY']
+gemapi_key = st.secrets['api_keys']['GEMINI_API_KEY']
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 with open("finalstyle.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -55,7 +51,7 @@ with placeholder:
         fetch_from_session_storage('combined_df', 'combined_df')
         st.session_state.combined_df = pd.DataFrame(st.session_state.combined_df)    
     if 'bbox_center' not in st.session_state:
-        fetch_from_session_storage('boxc', 'bbox_center')
+        fetch_from_session_storage('boxc', 'bbox_center',2)
 
 placeholder.empty()
 combined_df = st.session_state.combined_df
