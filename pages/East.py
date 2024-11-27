@@ -15,57 +15,14 @@ from helperfuncs import fetch_from_session_storage, load_image_to_tempfile, clea
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 from helperfuncs import alter_df
 
-placeholder = st.empty()
-with placeholder:
-    try:
-        if 'bbox_coords' not in st.session_state: 
-            fetch_from_session_storage('boxcoords', 'bbox_coords',5)
-            
-        if 'segmented_images' not in st.session_state: 
-            fetch_from_session_storage('seg', 'segmented_images')
-    except Exception as e:
-        with st.spinner("An error occured... you will be re-routed. Please retry loading this page if image already segmented."):
-            time.sleep(2)
-        switch_page('app')
-placeholder.empty()
-    
-if 'bbox_center' not in st.session_state: 
-    latitudes = [coord[1] for coord in st.session_state.bbox_coords]
-    longitudes = [coord[0] for coord in st.session_state.bbox_coords]
-    avg_lat = sum(latitudes) / len(latitudes)
-    avg_lon = sum(longitudes) / len(longitudes)
-    st.session_state.bbox_center = [avg_lon, avg_lat]
-
-if 'drawing_mode' not in st.session_state:
-    st.session_state.drawing_mode = "Bounding Box"
-if 'annotations' not in st.session_state:
-    st.session_state.annotations = []
-if 'upis' not in st.session_state: 
-    st.session_state.upis = ["sampleimages/1north.jpeg", "sampleimages/3west-left.jpeg", "sampleimages/5south-left.jpeg", "sampleimages/7east-left.jpeg"]
-
-if 'cleanup' not in st.session_state: 
-    cleanup_temp_dir()
-    st.session_state.cleanup = True
-    
-if 'bbox_confirmed' not in st.session_state:
-    st.session_state.bbox_confirmed = False
-if 'rectangle_drawn' not in st.session_state:
-    st.session_state.rectangle_drawn = False
-if 'line_drawn' not in st.session_state:
-    st.session_state.line_drawn = False
-if 'new_box' not in st.session_state: 
-    st.session_state.new_box = None
-if 'dt4' not in st.session_state: 
-    st.session_state.dt4 = None
-
-if 'east_tempfile' not in st.session_state:
-    temp_image_path = load_image_to_tempfile(st.session_state.segmented_images[3])
-    if temp_image_path:
-        st.session_state.east_tempfile = temp_image_path
 with st.empty():
     st.markdown(
         """
         <style>
+        [data-testid="stSidebar"][aria-expanded="true"] {
+        min-width: 0px;
+        max-width: 250px;
+        }
         iframe {
         max-height: 400px;
         }
@@ -84,7 +41,7 @@ with st.empty():
             margin-bottom: 20px;
         }
         .main .block-container {
-            padding-top: 5rem;
+            padding-top: 4rem;
             padding-bottom: 0rem;
             padding-left: 2rem;
             padding-right: 1rem;
@@ -139,14 +96,58 @@ with st.empty():
         border-image: linear-gradient(90deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
         animation: borderMove 3s linear infinite;
     }
-    [data-testid="stSidebar"][aria-expanded="true"] {
-        min-width: 0px;
-        max-width: 260px;
-    }
         </style>
         """,
         unsafe_allow_html=True
     )
+
+placeholder = st.empty()
+with placeholder:
+    try:
+        if 'bbox_coords' not in st.session_state: 
+            fetch_from_session_storage('boxcoords', 'bbox_coords',5)
+            
+        if 'segmented_images' not in st.session_state: 
+            fetch_from_session_storage('seg', 'segmented_images')
+    except Exception as e:
+        with st.spinner("An error occured... you will be re-routed. Please retry loading this page if image already segmented."):
+            time.sleep(2)
+        switch_page('app')
+placeholder.empty()
+    
+if 'bbox_center' not in st.session_state: 
+    latitudes = [coord[1] for coord in st.session_state.bbox_coords]
+    longitudes = [coord[0] for coord in st.session_state.bbox_coords]
+    avg_lat = sum(latitudes) / len(latitudes)
+    avg_lon = sum(longitudes) / len(longitudes)
+    st.session_state.bbox_center = [avg_lon, avg_lat]
+
+if 'drawing_mode' not in st.session_state:
+    st.session_state.drawing_mode = "Bounding Box"
+if 'annotations' not in st.session_state:
+    st.session_state.annotations = []
+if 'upis' not in st.session_state: 
+    st.session_state.upis = ["sampleimages/1north.jpeg", "sampleimages/3west-left.jpeg", "sampleimages/5south-left.jpeg", "sampleimages/7east-left.jpeg"]
+
+if 'cleanup' not in st.session_state: 
+    cleanup_temp_dir()
+    st.session_state.cleanup = True
+    
+if 'bbox_confirmed' not in st.session_state:
+    st.session_state.bbox_confirmed = False
+if 'rectangle_drawn' not in st.session_state:
+    st.session_state.rectangle_drawn = False
+if 'line_drawn' not in st.session_state:
+    st.session_state.line_drawn = False
+if 'new_box' not in st.session_state: 
+    st.session_state.new_box = None
+if 'dt4' not in st.session_state: 
+    st.session_state.dt4 = None
+
+if 'east_tempfile' not in st.session_state:
+    temp_image_path = load_image_to_tempfile(st.session_state.segmented_images[3])
+    if temp_image_path:
+        st.session_state.east_tempfile = temp_image_path
 
 def random_color():
     colors = {
@@ -196,8 +197,10 @@ with c1:
     try: 
         image = Image.open(st.session_state.east_tempfile)
     except Exception as e: 
-        # print("hello")
-        st.rerun()
+        with st.spinner("Your segmented images expired on cloud. You will be re-routed..."):
+            time.sleep(2)
+        switch_page('app')
+
     canvas_result = st_canvas(
         fill_color=random_color(),
         stroke_width=2,

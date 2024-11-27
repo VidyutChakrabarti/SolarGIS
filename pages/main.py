@@ -47,6 +47,10 @@ if 'panel_area' not in st.session_state:
     st.session_state.panel_area = 4.0
 if 'relocated' not in st.session_state:
     st.session_state.relocated = False
+if 'solareff' not in st.session_state:
+    st.session_state.solareff = 84
+if 'paneltype' not in st.session_state:
+    st.session_state.paneltype = "Monocrystalline"
 
 buildings = ee.FeatureCollection("GOOGLE/Research/open-buildings/v3/polygons") 
 def get_rectangle_coordinates(data):
@@ -190,51 +194,13 @@ else:
     st.session_state.bbox_coords = None 
 
 with st.sidebar.form(key='paraform', clear_on_submit=True):
-    solar_efficiency = st.slider("Solar panel efficiency (%):", 0, 100, 84)
-    array_type = st.selectbox("Array Type:", ["Fixed (open rack)", "Tracking"])
-    est = st.form_submit_button(label='Estimate')
-
-    if est and st.session_state.bbox_center:
-        latitude = st.session_state.bbox_center[1]
-        longitude = st.session_state.bbox_center[0]
-        
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            response_radiation, response_pv_power = loop.run_until_complete(main_fetch(latitude, longitude, api_key, int(st.session_state.npanels)))
-            resp = response_pv_power['estimated_actuals']
-        except Exception as e:
-            st.error('Error fetching data from APIs')
-            response_radiation, response_pv_power = None, None
-
-        if response_radiation and response_pv_power:
-            st.session_state.response_radiation = response_radiation
-            st.session_state.response_pv_power = response_pv_power
-            response_pv_power = json.dumps(response_pv_power)
-            response_radiation = json.dumps(response_radiation)
-            streamlit_js_eval(
-                js_expressions=f"sessionStorage.setItem('rad', `{response_radiation}`);",
-                key="save_rad"
-            )
-            streamlit_js_eval(
-                js_expressions=f"sessionStorage.setItem('boxcoords', `{json.dumps(st.session_state.bbox_coords)}`);",
-                key="save_coords"
-            )
-            streamlit_js_eval(
-                js_expressions=f"sessionStorage.setItem('pvpow', `{response_pv_power}`);",
-                key="save_pv"
-            )
-            streamlit_js_eval(
-                js_expressions=f"sessionStorage.setItem('boxc', `{json.dumps(st.session_state.bbox_center)}`);",
-                key="save_long"
-            )
-
-            time.sleep(1)
-            switch_page("app")
-         
-
-    if est and st.session_state.bbox_center is None: 
-        st.sidebar.error("Select a bouding box")
+    solar_efficiency = st.slider("Solar panel efficiency (%):", 0, 100, st.session_state.solareff)
+    panel_type = st.selectbox("Panel Type:", ["Monocrystalline", "Polycrystalline", "Thin-Film"])
+    set_params = st.form_submit_button(label="Set Parameters")
+    if set_params: 
+        st.session_state.solareff = solar_efficiency
+        st.session_state.paneltype = panel_type
+        st.success(f"Parameters set. Solar efficiency: {st.session_state.solareff}, Panel type: {st.session_state.paneltype}")
 
 with st.sidebar.form(key='panelsize'):
     panel_size = st.number_input("Specify panel size in sq meters", min_value=1.0, max_value=16.0, value=st.session_state.panel_area, step=0.1)
@@ -250,6 +216,59 @@ with st.sidebar.form(key='np'):
     if setnp: 
         st.session_state.npanels= int(solar_panels)
         st.success(f"No. of panels set to {st.session_state.npanels}")
+
+est = st.sidebar.button(label='Estimate', use_container_width=True)
+
+if est and st.session_state.bbox_center:
+    latitude = st.session_state.bbox_center[1]
+    longitude = st.session_state.bbox_center[0]
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        response_radiation, response_pv_power = loop.run_until_complete(main_fetch(latitude, longitude, api_key, int(st.session_state.npanels)))
+        resp = response_pv_power['estimated_actuals']
+    except Exception as e:
+        with st.sidebar:
+            st.error('Error fetching data from APIs')
+        response_radiation, response_pv_power = None, None
+
+    if response_radiation and response_pv_power:
+        st.session_state.response_radiation = response_radiation
+        st.session_state.response_pv_power = response_pv_power
+        response_pv_power = json.dumps(response_pv_power)
+        response_radiation = json.dumps(response_radiation)
+        streamlit_js_eval(
+            js_expressions=f"sessionStorage.setItem('rad', `{response_radiation}`);",
+            key="save_rad"
+        )
+        streamlit_js_eval(
+            js_expressions=f"sessionStorage.setItem('boxcoords', `{json.dumps(st.session_state.bbox_coords)}`);",
+            key="save_coords"
+        )
+        streamlit_js_eval(
+            js_expressions=f"sessionStorage.setItem('pvpow', `{response_pv_power}`);",
+            key="save_pv"
+        )
+        streamlit_js_eval(
+            js_expressions=f"sessionStorage.setItem('boxc', `{json.dumps(st.session_state.bbox_center)}`);",
+            key="save_long"
+        )
+        streamlit_js_eval(
+            js_expressions=f"sessionStorage.setItem('ptype', `{json.dumps(st.session_state.paneltype)}`);",
+            key="save_ptype"
+        )
+        streamlit_js_eval(
+            js_expressions=f"sessionStorage.setItem('npanels', `{json.dumps(st.session_state.npanels)}`);",
+            key="save_no_of_panels"
+        )
+
+        time.sleep(1)
+        switch_page("app")
+        
+
+if est and st.session_state.bbox_center is None: 
+    st.sidebar.error("Select a bouding box")
 
 
 

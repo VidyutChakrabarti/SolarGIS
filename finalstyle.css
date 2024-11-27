@@ -4,10 +4,15 @@
 }
 
 .main .block-container {
-    padding-top: 4rem;
+    padding-top: 3rem;
     padding-bottom: 2rem;
     padding-left: 1rem;
     padding-right: 1rem;
+}
+
+[data-testid="stSidebar"][aria-expanded="true"] {
+    min-width: 0px;
+    max-width: 250px;
 }
 
 @keyframes gradient-move {
@@ -57,9 +62,4 @@
     border-image-slice: 1;
     border-image: linear-gradient(90deg, #00ef9f, #5ffaff, #fd0866, #8d3cff) 1;
     animation: borderMove 3s linear infinite;
-}
-
-[data-testid="stSidebar"][aria-expanded="true"] {
-    min-width: 0px;
-    max-width: 260px;
 }

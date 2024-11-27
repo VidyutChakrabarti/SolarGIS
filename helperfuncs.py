@@ -9,8 +9,6 @@ import os
 import tempfile
 import requests
 import shutil
-import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
 
 def alter_df(df):
         
@@ -104,46 +102,113 @@ def load_image_to_tempfile(url):
             file_name = temp_dir + temp_file.name.split(r"\segimgs")[-1]
             return file_name
         else:
-            st.error("Failed to fetch the image.")
+            st.error("Failed to fetch image.")
             return None
-    
+            
 
-def yearly_estimate():
-    outer_percentage = 100  
-    inner_percentage = 72  
-    fig, ax = plt.subplots(figsize=(3, 3))
-    fig.patch.set_facecolor('#1E1E1E')  
-    ax.set_facecolor('#1E1E1E')  
+def mappie(total_cost, inner_value=5000, total_label="Total cost:", inner_label="Monthly savings with Solar:"):
+    html_code = f"""
+    <div style="text-align: center; margin-top: 20px;">
+        <div style="position: relative; width: 150px; height: 150px; margin: auto;">
+            <svg style="transform: rotate(-90deg);" width="150" height="150">
+                <!-- Outer base circle -->
+                <circle cx="75" cy="75" r="65" stroke="dimgray" stroke-width="15" fill="none" />
+                <!-- Outer progress bar -->
+                <circle id="outer-progress-bar" cx="75" cy="75" r="65" 
+                        stroke="cyan" stroke-width="15" fill="none" 
+                        stroke-dasharray="408" stroke-dashoffset="408" 
+                        style="transition: stroke-dashoffset 0.1s linear;" />
+                
+                <!-- Inner base circle -->
+                <circle cx="75" cy="75" r="45" stroke="darkgray" stroke-width="10" fill="none" />
+                <!-- Inner progress bar -->
+                <circle id="inner-progress-bar" cx="75" cy="75" r="45" 
+                        stroke="hotpink" stroke-width="10" fill="none" 
+                        stroke-dasharray="283" stroke-dashoffset="283" 
+                        style="transition: stroke-dashoffset 0.1s linear;" />
+            </svg>
+            
+            <!-- Center text for inner percentage -->
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                        font-size: 1.1rem; color: white; font-weight: bold;" id="cost-percentage">0%</div>
+        </div>
 
+        <!-- Label and Text beneath the chart for total cost -->
+        <div style="margin-top: 10px; font-size: 0.8rem; color: cyan; font-weight: bold;">
+            {total_label}: <span id="total-cost-text">0</span>
+        </div>
 
-    outer_colors = ['cyan']
-    ax.pie(
-        [outer_percentage],
-        radius=1,
-        colors=outer_colors,
-        startangle=90,
-        wedgeprops=dict(width=0.1, edgecolor='#1E1E1E')
-    )
+        <!-- Label and Text beneath the total cost for inner value -->
+        <div style="margin-top: 5px; font-size: 0.8rem; color: hotpink; font-weight: bold;">
+            {inner_label}: <span id="inner-value-text">0</span>
+        </div>
+    </div>
+    <script>
+        const totalCost = {total_cost};
+        const innerValue = {inner_value};
+        const duration = 7000; // Animation duration in milliseconds (slowed down)
+        const frameRate = 30; // Frames per second (slowed down)
+        const frameInterval = 1000 / frameRate; // Interval per frame in milliseconds
+        const totalFrames = Math.ceil(duration / frameInterval);
+        
+        const outerIncrement = totalCost / totalFrames;
+        const innerIncrement = innerValue / totalFrames;
+        
+        const maxOuterDashOffset = 408; // Circumference of the outer circle
+        const maxInnerDashOffset = 283; // Circumference of the inner circle
+        
+        const outerProgressBar = document.getElementById("outer-progress-bar");
+        const innerProgressBar = document.getElementById("inner-progress-bar");
+        const costPercentage = document.getElementById("cost-percentage");
+        const totalCostText = document.getElementById("total-cost-text");
+        const innerValueText = document.getElementById("inner-value-text");
+        
+        let currentOuterValue = 0;
+        let currentInnerValue = 0;
+        let currentFrame = 0;
 
-    inner_colors = ['hotpink', 'dimgray']
-    ax.pie(
-        [inner_percentage, 100 - inner_percentage],
-        radius=0.8,
-        colors=inner_colors,
-        startangle=90,
-        wedgeprops=dict(width=0.1, edgecolor='#1E1E1E')
-    )
-
-    circle = Circle((0, 0), 0.7, color='#1E1E1E', ec="none")
-    ax.add_artist(circle)
-
-
-    ax.text(0, -1.4, "Total PV Output: 31,520 kWh", color='cyan', fontsize=10, ha='center', va='center', weight='bold')
-    ax.text(0, -1.7, "Re-estimated PV Output: 22,710 kWh", color='hotpink', fontsize=10, ha='center', va='center', weight='bold')
-
-
-    ax.set(aspect="equal")
-
-    with st.sidebar:
-        st.write("**Yearly Energy Throughput:**")
-        st.pyplot(fig)
+        function animateCost() {{
+            if (currentFrame < totalFrames) {{
+                currentFrame++;
+                
+                // Update outer circle
+                currentOuterValue = Math.min(totalCost, currentOuterValue + outerIncrement);
+                const outerProgress = currentOuterValue / totalCost;
+                const outerOffset = maxOuterDashOffset * (1 - outerProgress);
+                outerProgressBar.style.strokeDashoffset = outerOffset.toFixed(2);
+                
+                // Update inner circle
+                currentInnerValue = Math.min(innerValue, currentInnerValue + innerIncrement);
+                const innerProgress = currentInnerValue / totalCost; // Inner value as percentage of total cost
+                const innerOffset = maxInnerDashOffset * (1 - innerProgress);
+                innerProgressBar.style.strokeDashoffset = innerOffset.toFixed(2);
+                
+                // Update central percentage text
+                const percentage = parseFloat(((currentInnerValue / totalCost) * 100).toFixed(1));
+                costPercentage.innerHTML = `${{percentage}}%`;
+                
+                // Update total cost text
+                totalCostText.innerHTML = `${{Math.round(currentOuterValue).toLocaleString()}}`;
+                
+                // Update inner value text
+                innerValueText.innerHTML = `${{Math.round(currentInnerValue).toLocaleString()}}`;
+                
+                // Continue animation
+                requestAnimationFrame(animateCost);
+            }}
+        }}
+        
+        requestAnimationFrame(animateCost);
+    </script>
+    <style>
+        #outer-progress-bar, #inner-progress-bar {{
+            stroke-linecap: butt; /* Smooth edges for both progress bars */
+            transition: stroke-dashoffset 0.1s linear;
+        }}
+        svg circle {{
+            stroke-linecap: butt; /* Smooth edges for base circles */
+        }}
+    </style>
+    """
+    with st.container(border=True):
+        st.components.v1.html(html_code, height=250)

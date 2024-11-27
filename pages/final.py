@@ -14,7 +14,7 @@ import asyncio
 from data import *
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
-from helperfuncs import main_fetch, fetch_from_session_storage, yearly_estimate
+from helperfuncs import main_fetch, fetch_from_session_storage, mappie
 import time
 
 api_key = st.secrets['api_keys']['SOLCAST_API_KEY']
@@ -41,6 +41,9 @@ if 'res' not in st.session_state:
     st.session_state.res = None
 if 'npanels' not in st.session_state: 
     st.session_state.npanels = 12
+if 'connect' not in st.session_state: 
+    st.session_state.connect = "Parallel"
+
 placeholder = st.empty()
 with placeholder:
     try:
@@ -53,6 +56,8 @@ with placeholder:
             st.session_state.combined_df = pd.DataFrame(st.session_state.combined_df)    
         if 'bbox_center' not in st.session_state:
             fetch_from_session_storage('boxc', 'bbox_center',2)
+        if 'paneltype' not in st.session_state:
+            fetch_from_session_storage('ptype', 'paneltype')
     except Exception as e: 
         with st.spinner("An exception occured... you will be re-routed. Please retry loading this page if images already segmented."):
             time.sleep(2)
@@ -79,23 +84,20 @@ def format_bbox_data(df):
         })
     return polygons
 
-# Preparing the data for PyDeck
 bbox_data = format_bbox_data(combined_df)
 
-# Defining the layer for bounding boxes (PolygonLayer)
 layer = pdk.Layer(
     "PolygonLayer",
     bbox_data,
     get_polygon="polygon",
-    get_fill_color="color",  # Assigning different colors to each building
+    get_fill_color="color",  
     get_elevation="height",
     elevation_scale=1,
-    extruded=True,  # Make it 3D
+    extruded=True,  
     wireframe=True,
     pickable=True,
 )
 
-# Set the view to initial location and zoom level, with fixed pitch and bearing
 view_state = pdk.ViewState(
     latitude=st.session_state.bbox_center[1],  
     longitude=st.session_state.bbox_center[0],  
@@ -326,11 +328,23 @@ with col2:
     )
     fig.frames = frames
     st.plotly_chart(fig) 
-    st.selectbox('Type of connection between panels:', ['Series', 'Parallel'])
+    st.session_state.connect = st.selectbox('Type of connection between panels:', ['Parallel','Series'])
 
 
 with col1:
     with st.form('solar'):
+        if st.session_state.paneltype == "Thin-Film": 
+            panelcoeff = 1.0
+        elif st.session_state.paneltype == "Polycrystalline": 
+            panelcoeff = 0.8
+        else: 
+            panelcoeff = 0.9
+
+        if st.session_state.connect == "Parallel": 
+            connectcoeff = 1.0
+        else: 
+            connectcoeff = 0.9
+
         data_pv = st.session_state.response_pv_power['estimated_actuals']
         times_pv = [
             (datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z") + timedelta(hours=5, minutes=30)).strftime('%H:%M')
@@ -342,7 +356,7 @@ with col1:
         df_pv = df_pv.sort_values('Time')
         adjusted_df_pv = pd.merge(df_pv, shadow_df, on='Time', how='inner')
         adjusted_df_pv['Adjusted PV Estimate'] = adjusted_df_pv.apply(
-            lambda row: max(row['PV Estimate'] * (1 - row['Shadow Coverage (%)'] / 100), 0), axis=1
+            lambda row: max(row['PV Estimate'] * (1 - row['Shadow Coverage (%)'] / 100)*panelcoeff*connectcoeff, 0), axis=1
         )
 
         # Slide 2 Data Preparation: Radiation
@@ -448,6 +462,9 @@ prompt_template = PromptTemplate(
     input_variables=["pv_data"],
     template=system_prompt + "\n\n{pv_data}"
 )
+with st.sidebar:
+    st.write("**Yearly Energy Throughput:**")
+    mappie(31520, 22710, "Total PV output(KwH)", "Re-estimated PV output(KwH)")
 
 def infer(pv_data):
     if st.session_state.infer:
@@ -458,7 +475,6 @@ with st.sidebar:
     with st.spinner('AI will respond shortly...'):
         infer(adjusted_df_pv)
 
-yearly_estimate() 
 
 
 

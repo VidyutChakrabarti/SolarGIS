@@ -223,7 +223,7 @@ st.markdown(
 }
 .stButton button {
     border: 2px solid white;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .stButton button:hover {

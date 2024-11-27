@@ -1,4 +1,9 @@
 /* style.css */
+[data-testid="stSidebar"][aria-expanded="true"] {
+    min-width: 0px;
+    max-width: 250px;
+}
+
 @keyframes gradient-move {
     0% {
         background-position: 200% 50%;
@@ -43,9 +48,4 @@ iframe {
 
 .stButton button {
     border: 2px solid white;
-}
-
-[data-testid="stSidebar"][aria-expanded="true"] {
-    min-width: 0px;
-    max-width: 260px;
 }

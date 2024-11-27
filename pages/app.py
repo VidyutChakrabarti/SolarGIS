@@ -51,6 +51,8 @@ if 'segmented_images' not in st.session_state:
     st.session_state.segmented_images = []
 if 'aires' not in st.session_state: 
     st.session_state.aires = " "
+if 'highpv' not in st.session_state: 
+    st.session_state.highpv = 1.0
 
 # Helper functions
 def upload_to_imgbb(image_path, api_key=st.secrets['api_keys']['IMGDB_API_KEY']):
@@ -178,8 +180,14 @@ with left_col:
         st.markdown('<div class="container">Initial PV Output</div>', unsafe_allow_html=True)
         data = st.session_state.response_pv_power['estimated_actuals']
         times = [(datetime.strptime(entry["period_end"], "%Y-%m-%dT%H:%M:%S.%f0Z") + timedelta(hours=5, minutes=30)).strftime('%H:%M') for entry in data]
-        pv_estimates = [entry["pv_estimate"] for entry in data]
-        
+        pv_estimates = []
+        highest_pv_estimate = float('-inf')  
+        for entry in data:
+            estimate = entry["pv_estimate"]
+            pv_estimates.append(estimate)
+            if estimate > highest_pv_estimate:
+                highest_pv_estimate = estimate
+        st.session_state.highpv = highest_pv_estimate
         df = pd.DataFrame({'Time': times, 'PV Estimate': pv_estimates})
         df = df.sort_values('Time')
         
@@ -287,6 +295,10 @@ with col2:
                         js_expressions=f"sessionStorage.setItem('desc', `{json.dumps(st.session_state.descriptions)}`);",
                         key="save_desc"
                     )
+                    streamlit_js_eval(
+                        js_expressions=f"sessionStorage.setItem('highpv', `{json.dumps(st.session_state.highpv)}`);",
+                        key="save_highest_pv"
+                    )
                     time.sleep(1)
                     switch_page('North')
 
@@ -310,4 +322,3 @@ if not upload_image or len(uploaded_images) != 4:
                 st.slider('Reference height:', min_value=0, max_value=100, value=0, format='%.1f')
             with rcol: 
                 st.form_submit_button('Change Reference height')
-#print(st.session_state.segmented_images)

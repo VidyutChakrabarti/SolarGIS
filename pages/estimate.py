@@ -6,7 +6,7 @@ import folium
 from data import *
 from helperfuncs import combine_dataframes
 import pandas as pd
-from helperfuncs import fetch_from_session_storage
+from helperfuncs import fetch_from_session_storage, mappie
 from streamlit_js_eval import streamlit_js_eval
 import time
 
@@ -15,7 +15,7 @@ with open("est_style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 with st.empty():
-    try:
+    try: 
         if 'segmented_images' not in st.session_state: 
             fetch_from_session_storage('seg', 'segmented_images')
 
@@ -40,6 +40,12 @@ with st.empty():
 
         if 'descriptions' not in st.session_state: 
             fetch_from_session_storage('desc','descriptions')
+        
+        if 'npanels' not in st.session_state: 
+            fetch_from_session_storage('npanels','npanels')
+        
+        if 'highpv' not in st.session_state: 
+            fetch_from_session_storage('highpv','highpv')
 
     except Exception as e:
         with st.spinner("An exception occured... you will be re-routed. Please retry loading this page if images already segmented."):
@@ -79,7 +85,13 @@ if st.sidebar.button("Resubmit Images", use_container_width=True):
 if st.sidebar.button("Reselect Obstacles", use_container_width=True):
     switch_page('North')
 
-
+with st.sidebar: 
+    with st.container(): 
+        st.write("**Estimated Return on investments:**")
+        total_cost = 35000*int(st.session_state.npanels)
+        label = f"Total cost for {st.session_state.npanels} panels(₹)"
+        mappie(total_cost,min(total_cost/8, 2.5*float(st.session_state.highpv)*30), label ,"Monthly savings(₹)")
+     
 st.sidebar.write("Your selected bounding box:")
 m = folium.Map(location=[st.session_state.bbox_center[1], st.session_state.bbox_center[0]], zoom_start=14)
 folium.Marker([st.session_state.bbox_center[1], st.session_state.bbox_center[0]], popup="Location").add_to(m)
