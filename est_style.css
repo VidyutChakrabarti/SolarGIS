@@ -1,6 +1,6 @@
 .block-container {
     padding-top: 3rem;
-    padding-bottom: 0rem;
+    padding-bottom: 2rem;
     padding-left: 2rem;
     padding-right: 2rem;
 }
@@ -291,4 +291,9 @@
 [data-testid="stForm"] {
     background-color: rgb(44, 0, 83);
     border: 2px solid rgb(255, 255, 255);
+}
+
+[data-testid="stSidebar"][aria-expanded="true"] {
+    min-width: 0px;
+    max-width: 250px;
 }

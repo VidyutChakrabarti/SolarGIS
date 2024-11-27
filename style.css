@@ -36,3 +36,16 @@ iframe {
         max-height: 590px;
     }
 }
+
+[data-testid="stForm"] {
+    border: 2px solid white;
+}
+
+.stButton button {
+    border: 2px solid white;
+}
+
+[data-testid="stSidebar"][aria-expanded="true"] {
+    min-width: 0px;
+    max-width: 260px;
+}

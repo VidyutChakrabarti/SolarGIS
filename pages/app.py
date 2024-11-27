@@ -41,6 +41,8 @@ with st.empty():
         if 'response_pv_power' not in st.session_state:
             fetch_from_session_storage('pvpow', 'response_pv_power')
     except Exception as e: 
+        with st.spinner("Your session memory was deleted. You will be re-routed...."):
+            time.sleep(2)
         switch_page('main')
 
 if 'dsb2' not in st.session_state:
@@ -155,7 +157,8 @@ left_col,right_col = st.columns([1.9,2])
 
 def infer(pv_data): 
     if st.session_state.aires == " ":
-        res = llm.invoke(prompt_template.format(pv_data=pv_data)) 
+        with st.spinner("AI will respond shortly..."):
+            res = llm.invoke(prompt_template.format(pv_data=pv_data)) 
         st.session_state.aires = res.content 
     st.sidebar.text_area('AI generated Inference:',st.session_state.aires, height=450)
 
@@ -165,8 +168,8 @@ if go_back:
     switch_page('main')
 
 st.sidebar.write("Your selected bounding box:")
-m = folium.Map(location=[st.session_state.bbox_center[1], st.session_state.bbox_center[0]], zoom_start=14)
-folium.Marker([st.session_state.bbox_center[1], st.session_state.bbox_center[0]], popup="Location").add_to(m)
+m = folium.Map(location=[st.session_state.bbox_center[1], st.session_state.bbox_center[0]], zoom_start=16)
+folium.Marker([st.session_state.bbox_center[1], st.session_state.bbox_center[0]],icon=folium.Icon(color="purple", icon="info-sign")).add_to(m)
 with st.sidebar:
     st_folium(m, width=300, height=200)
 
@@ -195,7 +198,13 @@ with left_col:
         pv_data = df.to_json(orient='records')
         c1,c2 = st.columns([3,1])
         with c1:
-            st.slider("Time range:", 1, 24, 24)
+            start_time, end_time = st.slider(
+            "Select time range:",
+            min_value=0.0,
+            max_value=23.5,
+            value=(0.0, 23.5),
+            step=0.5
+        )
         with c2:
             st.markdown(" ")
             st.markdown(" ")
@@ -223,7 +232,13 @@ with right_col:
         st.plotly_chart(fig)
         c1,c2 = st.columns([4,1])
         with c1:
-            st.slider("Time range:", 1, 24, 24)
+            starttime, endtime = st.slider(
+            "Select time range:",
+            min_value=0.0,
+            max_value=23.5,
+            value=(0.0, 23.5),
+            step=0.5
+        )
         with c2:
             st.markdown(" ")
             st.markdown(" ")
@@ -275,7 +290,7 @@ with col2:
                     time.sleep(1)
                     switch_page('North')
 
-if not upload_image and len(uploaded_images) != 4:
+if not upload_image or len(uploaded_images) != 4:
     with col1:
         youtube_code = '''
         <div style="width:100%; height:auto; max-width:560px; overflow:hidden;">

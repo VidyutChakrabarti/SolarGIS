@@ -15,31 +15,37 @@ with open("est_style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 with st.empty():
-    if 'segmented_images' not in st.session_state: 
-        fetch_from_session_storage('seg', 'segmented_images')
+    try:
+        if 'segmented_images' not in st.session_state: 
+            fetch_from_session_storage('seg', 'segmented_images')
 
-    if 'bbox_coords' not in st.session_state: 
-        fetch_from_session_storage('boxcoords', 'bbox_coords', 6)
+        if 'bbox_coords' not in st.session_state: 
+            fetch_from_session_storage('boxcoords', 'bbox_coords',9)
 
-    if 'dt1' not in st.session_state: 
-        fetch_from_session_storage('dt1', 'dt1')
-        st.session_state.dt1 = pd.DataFrame(st.session_state.dt1)
+        if 'dt1' not in st.session_state: 
+            fetch_from_session_storage('dt1', 'dt1')
+            st.session_state.dt1 = pd.DataFrame(st.session_state.dt1)
 
-    if 'dt2' not in st.session_state: 
-        fetch_from_session_storage('dt2', 'dt2')
-        st.session_state.dt2 = pd.DataFrame(st.session_state.dt2)
+        if 'dt2' not in st.session_state: 
+            fetch_from_session_storage('dt2', 'dt2')
+            st.session_state.dt2 = pd.DataFrame(st.session_state.dt2)
 
-    if 'dt3' not in st.session_state: 
-        fetch_from_session_storage('dt3', 'dt3')
-        st.session_state.dt3 = pd.DataFrame(st.session_state.dt3)
+        if 'dt3' not in st.session_state: 
+            fetch_from_session_storage('dt3', 'dt3')
+            st.session_state.dt3 = pd.DataFrame(st.session_state.dt3)
 
-    if 'dt4' not in st.session_state: 
-        fetch_from_session_storage('dt4', 'dt4')
-        st.session_state.dt4 = pd.DataFrame(st.session_state.dt4)
+        if 'dt4' not in st.session_state: 
+            fetch_from_session_storage('dt4', 'dt4')
+            st.session_state.dt4 = pd.DataFrame(st.session_state.dt4)
 
-    if 'descriptions' not in st.session_state: 
-        fetch_from_session_storage('desc','descriptions')
-    
+        if 'descriptions' not in st.session_state: 
+            fetch_from_session_storage('desc','descriptions')
+
+    except Exception as e:
+        with st.spinner("An exception occured... you will be re-routed. Please retry loading this page if images already segmented."):
+            time.sleep(2)
+        switch_page('East')
+
 if 'bbox_center' not in st.session_state: 
     latitudes = [coord[1] for coord in st.session_state.bbox_coords]
     longitudes = [coord[0] for coord in st.session_state.bbox_coords]

@@ -14,7 +14,8 @@ from helperfuncs import main_fetch
 from streamlit_js_eval import streamlit_js_eval
 import json
 import time
-import requests
+from folium.plugins import MiniMap
+from folium.plugins import LocateControl
 
 api_key = st.secrets['api_keys']['SOLCAST_API_KEY']
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
@@ -25,9 +26,9 @@ with open("style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 if 'lat' not in st.session_state:
-    st.session_state.lat = 21.1537
+    st.session_state.lat = 12.9767936
 if 'lng' not in st.session_state:
-    st.session_state.lng = 79.0729 
+    st.session_state.lng = 77.590082
 if 'prev_rectangle_coords' not in st.session_state:
     st.session_state.prev_rectangle_coords = None
 if 'total_area' not in st.session_state:
@@ -43,7 +44,7 @@ if 'bbox_coords' not in st.session_state:
 if 'npanels' not in st.session_state: 
     st.session_state.npanels = 12
 if 'panel_area' not in st.session_state: 
-    st.session_state.panel_area = 3.95
+    st.session_state.panel_area = 4.0
 if 'relocated' not in st.session_state:
     st.session_state.relocated = False
 
@@ -75,8 +76,8 @@ if submit_button:
     else:
         st.sidebar.write("Location not found. Try using other names.")
         st.session_state.relocated = False
-        st.session_state.lat = 21.1537
-        st.session_state.lng = 79.0729
+        st.session_state.lat = 12.9767936
+        st.session_state.lng = 77.590082
 
 map_location = [st.session_state.lat , st.session_state.lng] 
 m = folium.Map(location=map_location, zoom_start=17, tiles=None)
@@ -105,6 +106,11 @@ draw = Draw(
     }
 )
 draw.add_to(m)
+
+mini_map = MiniMap(toggle_display=True)
+m.add_child(mini_map)
+LocateControl(auto_start=False).add_to(m)
+
 def add_feature_collection_to_map(m):
     buildings_image = ee.Image().paint(featureCollection=buildings, color='ffcc00', width=1)
     visualization_params = {
@@ -146,7 +152,7 @@ if st.session_state.relocated == True:
         icon=folium.Icon(color="purple", icon="info-sign"),  
     ).add_to(m)
 
-output = st_folium(m, width='100%')
+output = st_folium(m, width='100%', returned_objects=["all_drawings"])
 if output.get('all_drawings') and isinstance(output.get('all_drawings'), list):
     if len(output['all_drawings']) == 1:
         drawing = output['all_drawings'][0]
@@ -158,21 +164,23 @@ if output.get('all_drawings') and isinstance(output.get('all_drawings'), list):
                 for side, coord in zip(sides, rectangle_coords):
                     st.sidebar.markdown(f"**{side}:** `{coord}`")
                 if rectangle_coords != st.session_state.prev_rectangle_coords:
-                    bbox_coords = [i for i in rectangle_coords]
-                    bbox_polygon = Polygon(bbox_coords)
-                    transformer = Transformer.from_crs("epsg:4326", "epsg:6933", always_xy=True)
-                    transformed_polygon = ops.transform(transformer.transform, bbox_polygon)
-                    area = transformed_polygon.area
-                    print("geodesic area", area)
-                    if(area>8000): 
-                        st.sidebar.markdown("<span style='color:red'>Area constraint violated. Choose a smaller area.</span>", unsafe_allow_html=True)
-                    else:
-                        st.session_state.prev_rectangle_coords = rectangle_coords               
-                        bounding_box = ee.Geometry.Polygon([rectangle_coords])              
-                        buildings_in_bbox = buildings.filterBounds(bounding_box)
-                        calculate_area(buildings_in_bbox)  
-                        st.session_state.bbox_center = bbox_polygon.centroid.coords[0]
-                        st.session_state.bbox_coords = bbox_coords
+                    with st.sidebar:
+                        with st.spinner("Fetching area details..."):
+                            bbox_coords = [i for i in rectangle_coords]
+                            bbox_polygon = Polygon(bbox_coords)
+                            transformer = Transformer.from_crs("epsg:4326", "epsg:6933", always_xy=True)
+                            transformed_polygon = ops.transform(transformer.transform, bbox_polygon)
+                            area = transformed_polygon.area
+                            print("geodesic area", area)
+                            # if(area>8000): 
+                            #     st.sidebar.markdown("<span style='color:red'>Area constraint violated. Choose a smaller area.</span>", unsafe_allow_html=True)
+                            #else:
+                            st.session_state.prev_rectangle_coords = rectangle_coords               
+                            bounding_box = ee.Geometry.Polygon([rectangle_coords])              
+                            buildings_in_bbox = buildings.filterBounds(bounding_box)
+                            calculate_area(buildings_in_bbox)  
+                            st.session_state.bbox_center = bbox_polygon.centroid.coords[0]
+                            st.session_state.bbox_coords = bbox_coords
     else:
         st.sidebar.markdown("<span style='color:red'>Delete the previously selected bounding box.</span>", unsafe_allow_html=True)       
 else:
@@ -182,7 +190,7 @@ else:
     st.session_state.bbox_coords = None 
 
 with st.sidebar.form(key='paraform', clear_on_submit=True):
-    solar_efficiency = st.slider("Solar panel efficiency (%):", 0, 100, 24)
+    solar_efficiency = st.slider("Solar panel efficiency (%):", 0, 100, 84)
     array_type = st.selectbox("Array Type:", ["Fixed (open rack)", "Tracking"])
     est = st.form_submit_button(label='Estimate')
 
@@ -229,10 +237,10 @@ with st.sidebar.form(key='paraform', clear_on_submit=True):
         st.sidebar.error("Select a bouding box")
 
 with st.sidebar.form(key='panelsize'):
-    panel_size = st.number_input("Specify panel size in sq meters", min_value=1.0, max_value=16.0, value=st.session_state.panel_area, step=0.05)
+    panel_size = st.number_input("Specify panel size in sq meters", min_value=1.0, max_value=16.0, value=st.session_state.panel_area, step=0.1)
     setsize = st.form_submit_button("Set Panel size")
     if setsize: 
-        st.session_state.panel_area = float(panel_size)
+        st.session_state.panel_area = round(float(panel_size), 1)
         set_npanels()
         st.success(f"Panel size set to {st.session_state.panel_area}")
 

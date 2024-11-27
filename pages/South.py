@@ -11,16 +11,23 @@ from streamlit_js_eval import streamlit_js_eval
 import time
 from helperfuncs import fetch_from_session_storage, load_image_to_tempfile, cleanup_temp_dir
 
-ImageFile.LOAD_TRUNCATED_IMAGES = True
+#ImageFile.LOAD_TRUNCATED_IMAGES = True
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 from helperfuncs import alter_df
 
-with st.empty():
-    if 'bbox_coords' not in st.session_state: 
-        fetch_from_session_storage('boxcoords', 'bbox_coords', 4)
-        
-    if 'segmented_images' not in st.session_state: 
-        fetch_from_session_storage('seg', 'segmented_images')
+placeholder = st.empty()
+with placeholder:
+    try:
+        if 'bbox_coords' not in st.session_state: 
+            fetch_from_session_storage('boxcoords', 'bbox_coords',4)
+            
+        if 'segmented_images' not in st.session_state: 
+            fetch_from_session_storage('seg', 'segmented_images')
+    except Exception as e:
+        with st.spinner("An error occured... you will be re-routed. Please retry loading this page if image already segmented."):
+            time.sleep(2)
+        switch_page('app')
+placeholder.empty()
     
 if 'bbox_center' not in st.session_state: 
     latitudes = [coord[1] for coord in st.session_state.bbox_coords]
@@ -55,6 +62,92 @@ if 'south_tempfile' not in st.session_state:
     temp_image_path = load_image_to_tempfile(st.session_state.segmented_images[2])
     if temp_image_path:
         st.session_state.south_tempfile = temp_image_path
+
+with st.empty():
+    st.markdown(
+        """
+        <style>
+        iframe {
+        max-height: 400px;
+        }
+        [data-testid="column"]{
+            background-color: rgba(0, 255, 110, 0.3);
+            border: 2px solid rgba(0, 255, 110, 1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        [data-testid="stForm"]{
+            background-color: rgba(0, 255, 110, 0.3);
+            border: 2px solid rgba(0, 255, 110, 1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .main .block-container {
+            padding-top: 5rem;
+            padding-bottom: 0rem;
+            padding-left: 2rem;
+            padding-right: 1rem;
+        }
+        @keyframes gradient-move {
+            0% { background-position: 200% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #ff3300, #7bfcfe, #ff7e5f);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-move 5s linear infinite;
+            font-size: 25px;
+            font-weight: bold;
+            font-family: 'Times New Roman', Times, serif; 
+        }
+        .gradient-line {
+            height: 10px;
+            border: none;
+            margin-top: 0px;
+            margin-bottom: 2px;
+            color: #00008B;
+            background-color: #00008B;
+            background-image: linear-gradient(to right, #ff3300, #7bfcfe, #ff7e5f);
+            background-size: 200% auto;
+            animation: gradient-move 8s linear infinite;
+        }
+        .stButton > button {
+            width: 100%; 
+            border: 2px solid rgba(0, 255, 110, 1);
+        }
+        @keyframes borderMove {
+        0% {
+            border-image: linear-gradient(0deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+        }
+
+        50% {
+            border-image: linear-gradient(180deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+        }
+
+        100% {
+            border-image: linear-gradient(360deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+        }
+    }
+
+    #text_area_1 {
+        border: 2px solid;
+        border-image-slice: 1;
+        border-image: linear-gradient(90deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
+        animation: borderMove 3s linear infinite;
+    }
+    [data-testid="stSidebar"][aria-expanded="true"] {
+        min-width: 0px;
+        max-width: 260px;
+    }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
 def random_color():
     colors = {
@@ -91,7 +184,7 @@ with c2:
     st.write("**Step 1: Select Bounding Box on Map**")
     m = folium.Map(location=[st.session_state.bbox_center[1], st.session_state.bbox_center[0]], zoom_start=18, tiles=None)
     folium.TileLayer(tiles="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", attr='Google', name='Google Dark', max_zoom=21, subdomains=['mt0', 'mt1', 'mt2', 'mt3']).add_to(m)
-    draw = Draw(draw_options={"rectangle": True, "polygon": False, "circle": False, "marker": False, "polyline": False}, edit_options={"edit": True})
+    draw = Draw(draw_options={"rectangle": True, "polygon": False, "circle": False, "marker": False, "polyline": False, 'circlemarker': False}, edit_options={"edit": True})
     draw.add_to(m)
     folium.Polygon(locations=[(coord[1], coord[0]) for coord in st.session_state.bbox_coords], color="blue", fill=True, fill_opacity=0.2).add_to(m)
     output = st_folium(m, width=530, height=400)
@@ -101,7 +194,11 @@ with c2:
         st.session_state.drawing_mode = "Rectangle"
 
 with c1:
-    image = Image.open(st.session_state.south_tempfile)
+    try:
+        image = Image.open(st.session_state.south_tempfile)
+    except Exception as e: 
+        # print("hello")
+        st.rerun()
     canvas_result = st_canvas(
         fill_color=random_color(),
         stroke_width=2,
@@ -114,7 +211,7 @@ with c1:
     )
 
     # Rectangle submission
-    if st.button("Select Object", key="submit_rect", disabled=(not st.session_state.bbox_confirmed or st.session_state.drawing_mode != "Rectangle")):
+    if st.button("Select Object", key="submit_rect", disabled=(not st.session_state.bbox_confirmed or st.session_state.drawing_mode != "Rectangle"),use_container_width=True, help='Confirm bounding box first.'):
         if canvas_result.json_data:
             rect_df = pd.json_normalize(canvas_result.json_data["objects"])
             st.session_state.annotations.append({"bbox_coords": st.session_state.new_box, "rect_height": rect_df['height'].iloc[-1]})
@@ -123,7 +220,7 @@ with c1:
             st.rerun()
 
     # Line submission
-    if st.button("Submit reference Line", key="submit_line", disabled=(not st.session_state.rectangle_drawn or st.session_state.drawing_mode != "Line")):
+    if st.button("Submit reference Line", key="submit_line", disabled=(not st.session_state.rectangle_drawn or st.session_state.drawing_mode != "Line"), use_container_width=True, help='Confirm object first.'):
         if canvas_result.json_data:
             line_df = pd.json_normalize(canvas_result.json_data["objects"])
             st.session_state.annotations[-1]["line_height"] = line_df['height'].iloc[-1]       
@@ -134,9 +231,19 @@ with c1:
 
 with st.form(key='df'): 
     st.write("**Collected Annotations:**")
+    expand = st.expander("Note on zero obstacles to be selected.") 
+    expand.write("▶ If certain images do not have any obstacles to be selected, draw a box far away from the setup site and radomly select rectangles and line such that their estimated heights would not cast any shadows that could interfere with the setup site.")
+    expand.write("▶ This step has been incorporated to ensure type safety.")
     if st.session_state.annotations:
         st.dataframe(pd.DataFrame(st.session_state.annotations))
-    next_page = st.form_submit_button('Next Page')
+
+    all_annotations_complete = all(
+        "bbox_coords" in ann and "line_height" in ann and "rect_height" in ann
+        for ann in st.session_state.annotations
+    )
+
+    next_page = st.form_submit_button('Next Page', disabled=((not all_annotations_complete) or len(st.session_state.annotations)==0), use_container_width=True, help = "Select atleast one obstacle. If you have drawn a rectangle you must complete the row with a line.")
+
     if next_page:
         st.session_state.annotations = pd.DataFrame(st.session_state.annotations)
         st.session_state.dt3 = alter_df(st.session_state.annotations)
@@ -151,84 +258,3 @@ with st.form(key='df'):
         reset_session_state()
         cleanup_temp_dir()
         switch_page('East')
-
-st.markdown(
-    """
-    <style>
-    iframe {
-    max-height: 400px;
-    }
-    [data-testid="column"]{
-        background-color: rgba(0, 255, 110, 0.3);
-        border: 2px solid rgba(0, 255, 110, 1);
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-    [data-testid="stForm"]{
-        background-color: rgba(0, 255, 110, 0.3);
-        border: 2px solid rgba(0, 255, 110, 1);
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-    .main .block-container {
-        padding-top: 5rem;
-        padding-bottom: 0rem;
-        padding-left: 2rem;
-        padding-right: 1rem;
-    }
-    @keyframes gradient-move {
-        0% { background-position: 200% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    .gradient-text {
-        background: linear-gradient(to right, #ff3300, #7bfcfe, #ff7e5f);
-        background-size: 200% auto;
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: gradient-move 5s linear infinite;
-        font-size: 25px;
-        font-weight: bold;
-        font-family: 'Times New Roman', Times, serif; 
-    }
-    .gradient-line {
-        height: 10px;
-        border: none;
-        margin-top: 0px;
-        margin-bottom: 2px;
-        color: #00008B;
-        background-color: #00008B;
-        background-image: linear-gradient(to right, #ff3300, #7bfcfe, #ff7e5f);
-        background-size: 200% auto;
-        animation: gradient-move 8s linear infinite;
-    }
-    .stButton > button {
-        width: 100%; 
-        border: 2px solid rgba(0, 255, 110, 1);
-    }
-       @keyframes borderMove {
-    0% {
-        border-image: linear-gradient(0deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
-    }
-
-    50% {
-        border-image: linear-gradient(180deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
-    }
-
-    100% {
-        border-image: linear-gradient(360deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
-    }
-}
-
-#text_area_1 {
-    border: 2px solid;
-    border-image-slice: 1;
-    border-image: linear-gradient(90deg, #00ef9f, #5ffaff, #d20051, #8d3cff) 1;
-    animation: borderMove 3s linear infinite;
-}
-    </style>
-    """,
-    unsafe_allow_html=True
-)

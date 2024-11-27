@@ -8,8 +8,6 @@ import time
 import os
 import tempfile
 import requests
-from PIL import Image
-from io import BytesIO
 import shutil
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
@@ -96,17 +94,18 @@ def cleanup_temp_dir():
 
 
 def load_image_to_tempfile(url):
-    temp_dir = "segimgs"
-    response = requests.get(url)
-    if response.status_code == 200:
-        temp_file = tempfile.NamedTemporaryFile(dir=temp_dir, delete=False, suffix=".png")
-        image = Image.open(BytesIO(response.content))
-        image.save(temp_file.name)
-        temp_file.close()
-        return temp_file.name
-    else:
-        st.error("Failed to fetch the image.")
-        return None
+    with st.spinner("Fetching segmented image..."):
+        temp_dir = "segimgs"
+        response = requests.get(url, stream=True)
+        if response.status_code == 200:
+            temp_file = tempfile.NamedTemporaryFile(dir=temp_dir, delete=False, suffix=".png")
+            with open(temp_file.name, 'wb') as f:
+                f.write(response.content) 
+            file_name = temp_dir + temp_file.name.split(r"\segimgs")[-1]
+            return file_name
+        else:
+            st.error("Failed to fetch the image.")
+            return None
     
 
 def yearly_estimate():
