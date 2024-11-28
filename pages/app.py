@@ -274,9 +274,9 @@ with col2:
                 with cols[i % 2]:
                     st.markdown(f"<div style='text-align: center;'>{labels[i]}</div>", unsafe_allow_html=True)
                     if upload_image and len(uploaded_images) == 4:
-                        placeholders.append(st.image(uploaded_images[i], use_column_width=True))
+                        placeholders.append(st.image(uploaded_images[i], use_container_width=True))
                     else:
-                        placeholders.append(st.image(placeholder_image_url, use_column_width=True))
+                        placeholders.append(st.image(placeholder_image_url, use_container_width=True))
         segment = st.form_submit_button("Segment", use_container_width=True, disabled=st.session_state.dsb2, help="Upload all images first.")
         if segment and len(uploaded_images) == 4: 
             with st.spinner("Restrain from re-freshing while we segment your images..."):

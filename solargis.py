@@ -3,19 +3,26 @@ from streamlit_extras.switch_page_button import switch_page
 from helperfuncs import cleanup_temp_dir
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 cleanup_temp_dir()
-st.markdown(
-    """
-    <style>
-    .main .block-container {
-        padding-top: 0rem;
-        padding-bottom: 2rem;
-        padding-left: 0rem;
-        padding-right: 0rem;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+with st.empty():
+    st.markdown(
+        """
+        <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .main .block-container {
+            padding-top: 0rem;
+            padding-bottom: 2rem;
+            padding-left: 0rem;
+            padding-right: 0rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
 html_code = """
 <div id="vanta-background" style="position: absolute; width: 100%; height: 100%; z-index: -1;"></div>
