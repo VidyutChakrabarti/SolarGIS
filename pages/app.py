@@ -19,7 +19,8 @@ import time
 from helperfuncs import fetch_from_session_storage
 
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
-
+with open("style2.css") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 gemapi_key = st.secrets['api_keys']['GEMINI_API_KEY']
 
 headers = {
@@ -27,9 +28,9 @@ headers = {
     "Token": st.secrets['api_keys']['DINO_TOKEN']
 }
 
-
 if 'descriptions' not in st.session_state: 
     st.session_state.descriptions = []
+
 with st.empty():
     try:
         if 'bbox_center' not in st.session_state: 
@@ -40,7 +41,7 @@ with st.empty():
 
         if 'response_pv_power' not in st.session_state:
             fetch_from_session_storage('pvpow', 'response_pv_power')
-    except Exception as e: 
+    except Exception as e:   
         with st.spinner("Your session memory was deleted. You will be re-routed...."):
             time.sleep(2)
         switch_page('main')
@@ -138,12 +139,9 @@ def threaded_process_images(uploaded_images):
         if os.path.exists(file_path):
             os.remove(file_path)
 
-with open("style2.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-pro",
+    model="gemini-1.0-pro",
     temperature=0, 
     api_key=gemapi_key)
 
@@ -322,3 +320,12 @@ if not upload_image or len(uploaded_images) != 4:
                 st.slider('Reference height:', min_value=0, max_value=100, value=0, format='%.1f')
             with rcol: 
                 st.form_submit_button('Change Reference height')
+
+if 'rerouted' in st.session_state:
+    with st.sidebar:   
+        if st.button(f"Retry fetching {st.session_state.rerouted}", help="re-reoute to last page, if images were segmented just now.", use_container_width=True): 
+            reroute_page = f"{st.session_state.rerouted}"
+            switch_page(reroute_page)
+ 
+        if st.button("Retry Estimation", help = "reroute to /estimate if all images were already segmented.", use_container_width=True): 
+            switch_page('estimate')

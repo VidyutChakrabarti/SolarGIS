@@ -10,6 +10,7 @@ import random
 from streamlit_js_eval import streamlit_js_eval
 import time
 from helperfuncs import fetch_from_session_storage, load_image_to_tempfile, cleanup_temp_dir
+import json
 
 #ImageFile.LOAD_TRUNCATED_IMAGES = True
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
@@ -110,10 +111,15 @@ with placeholder:
             
         if 'segmented_images' not in st.session_state: 
             fetch_from_session_storage('seg', 'segmented_images')
+
+        if len(st.session_state.segmented_images)!=4: 
+            raise ValueError("The number of segmented images is not 4.")
     except Exception as e:
         with st.spinner("An error occured... you will be re-routed. Please retry loading this page if image already segmented."):
-            time.sleep(2)
-        switch_page('app')
+            time.sleep(1)
+        if 'rerouted' not in st.session_state: 
+            st.session_state.rerouted = "North"
+        switch_page('estimate')
 placeholder.empty()  
 
 if 'bbox_center' not in st.session_state: 
@@ -198,9 +204,16 @@ with c1:
     try: 
         image = Image.open(st.session_state.north_tempfile)
     except Exception as e: 
+        print(e)
         with st.spinner("Your segmented images expired on cloud. You will be re-routed..."):
-            time.sleep(2)
-        switch_page('app')
+            if 'rerouted' not in st.session_state: 
+                st.session_state.rerouted = "North"
+            streamlit_js_eval(
+                            js_expressions=f"sessionStorage.setItem('seg', `{json.dumps([])}`);",
+                            key="save_segua"
+                        )
+            time.sleep(1)
+        switch_page('estimate')
             
     canvas_result = st_canvas(
         fill_color=random_color(),

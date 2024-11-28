@@ -75,7 +75,7 @@ def fetch_from_session_storage(key, session_state_key, uid = 1):
             key=f"retrieve_{key}_{uid}",
             use_return=True
         )
-        time.sleep(0.1) 
+        time.sleep(0.3) 
         if data:
             st.session_state[session_state_key] = json.loads(data)
             break

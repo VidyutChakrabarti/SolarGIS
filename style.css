@@ -1,7 +1,7 @@
 /* style.css */
 [data-testid="stSidebar"][aria-expanded="true"] {
     min-width: 0px;
-    max-width: 250px;
+    max-width: 245px;
 }
 
 @keyframes gradient-move {

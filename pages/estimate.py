@@ -49,8 +49,8 @@ with st.empty():
 
     except Exception as e:
         with st.spinner("An exception occured... you will be re-routed. Please retry loading this page if images already segmented."):
-            time.sleep(2)
-        switch_page('East')
+            time.sleep(1)
+        switch_page('app')
 
 if 'bbox_center' not in st.session_state: 
     latitudes = [coord[1] for coord in st.session_state.bbox_coords]
@@ -86,11 +86,12 @@ if st.sidebar.button("Reselect Obstacles", use_container_width=True):
     switch_page('North')
 
 with st.sidebar: 
-    with st.container(): 
-        st.write("**Estimated Return on investments:**")
-        total_cost = 35000*int(st.session_state.npanels)
-        label = f"Total cost for {st.session_state.npanels} panels(₹)"
-        mappie(total_cost,min(total_cost/8, 2.5*float(st.session_state.highpv)*30), label ,"Monthly savings(₹)")
+    st.write("**Estimated Return on investments:**")
+    expand = st.expander("Note") 
+    expand.write("ROI has been generalized on average price of solar panels and electrcity in India.")   
+    total_cost = 35000*int(st.session_state.npanels)
+    label = f"Total cost for {st.session_state.npanels} panels(₹)"
+    mappie(total_cost,min(total_cost/8, 2.5*float(st.session_state.highpv)*30), label ,"Monthly savings(₹)")
      
 st.sidebar.write("Your selected bounding box:")
 m = folium.Map(location=[st.session_state.bbox_center[1], st.session_state.bbox_center[0]], zoom_start=14)

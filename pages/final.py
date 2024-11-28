@@ -60,7 +60,7 @@ with placeholder:
             fetch_from_session_storage('ptype', 'paneltype')
     except Exception as e: 
         with st.spinner("An exception occured... you will be re-routed. Please retry loading this page if images already segmented."):
-            time.sleep(2)
+            time.sleep(1.5)
         switch_page('estimate')
 
 placeholder.empty()
@@ -451,7 +451,7 @@ with col1:
                 st.session_state.response_pv_power = response_pv_power
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-pro",
+    model="gemini-1.0-pro",
     temperature=0, 
     api_key=gemapi_key)
 
