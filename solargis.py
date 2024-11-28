@@ -7,12 +7,6 @@ with st.empty():
     st.markdown(
         """
         <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
         .main .block-container {
             padding-top: 0rem;
             padding-bottom: 2rem;

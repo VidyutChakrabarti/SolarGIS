@@ -1,3 +1,4 @@
+streamlit==1.37.1
 aiohttp
 earthengine_api
 folium
@@ -15,7 +16,6 @@ pyproj
 pytz
 Requests
 Shapely
-streamlit
 streamlit_drawable_canvas
 streamlit_extras
 streamlit_folium

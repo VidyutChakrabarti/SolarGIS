@@ -1,11 +1,4 @@
 /* style.css */
-html,
-body {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    overflow: hidden;
-}
 
 [data-testid="stSidebar"][aria-expanded="true"] {
     min-width: 0px;
