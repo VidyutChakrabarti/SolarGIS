@@ -9,6 +9,7 @@ import os
 import tempfile
 import requests
 import shutil
+from streamlit_extras.switch_page_button import switch_page
 
 def alter_df(df):
         
@@ -102,8 +103,10 @@ def load_image_to_tempfile(url):
             file_name = temp_dir + temp_file.name.split(r"\segimgs")[-1]
             return file_name
         else:
-            st.error("Failed to fetch image.")
-            return None
+            st.error("Failed to fetch image from cloud.")
+            with st.spinner("An error occured while fetching your image from cloud. Re-try segmenting"):
+                time.sleep(1)
+            switch_page('estimate')
             
 
 def mappie(total_cost, inner_value=5000, total_label="Total cost:", inner_label="Monthly savings with Solar:"):

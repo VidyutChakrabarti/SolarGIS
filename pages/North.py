@@ -10,7 +10,6 @@ import random
 from streamlit_js_eval import streamlit_js_eval
 import time
 from helperfuncs import fetch_from_session_storage, load_image_to_tempfile, cleanup_temp_dir
-import json
 
 #ImageFile.LOAD_TRUNCATED_IMAGES = True
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
@@ -137,6 +136,9 @@ if 'upis' not in st.session_state:
     st.session_state.upis = ["sampleimages/1north.jpeg", "sampleimages/3west-left.jpeg", "sampleimages/5south-left.jpeg", "sampleimages/7east-left.jpeg"]
 
 if 'cleanup' not in st.session_state: 
+    st.session_state.cleanup = False
+
+if st.session_state.cleanup == False: 
     cleanup_temp_dir()
     st.session_state.cleanup = True
     
@@ -151,7 +153,10 @@ if 'new_box' not in st.session_state:
 if 'dt1' not in st.session_state: 
     st.session_state.dt1 = None
 
-if 'north_tempfile' not in st.session_state:
+if 'north_tempfile' not in st.session_state: 
+    st.session_state.north_tempfile = "sampleimages/1north.jpeg"
+
+if st.session_state.north_tempfile == "sampleimages/1north.jpeg":
     temp_image_path = load_image_to_tempfile(st.session_state.segmented_images[0])
     if temp_image_path:
         st.session_state.north_tempfile = temp_image_path
@@ -203,17 +208,10 @@ with c2:
 with c1:
     try: 
         image = Image.open(st.session_state.north_tempfile)
-    except Exception as e: 
-        print(e)
-        with st.spinner("Your segmented images expired on cloud. You will be re-routed..."):
-            if 'rerouted' not in st.session_state: 
-                st.session_state.rerouted = "North"
-            streamlit_js_eval(
-                            js_expressions=f"sessionStorage.setItem('seg', `{json.dumps([])}`);",
-                            key="save_segua"
-                        )
-            time.sleep(1)
-        switch_page('estimate')
+    except Exception as e:
+        st.session_state.cleanup = False
+        st.session_state.north_tempfile = "sampleimages/1north.jpeg"
+        st.rerun()
             
     canvas_result = st_canvas(
         fill_color=random_color(),

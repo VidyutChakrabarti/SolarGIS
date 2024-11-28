@@ -136,9 +136,12 @@ if 'annotations' not in st.session_state:
 if 'upis' not in st.session_state: 
     st.session_state.upis = ["sampleimages/1north.jpeg", "sampleimages/3west-left.jpeg", "sampleimages/5south-left.jpeg", "sampleimages/7east-left.jpeg"]
 
-if 'cleanup' not in st.session_state: 
+if 'cleanup3' not in st.session_state: 
+    st.session_state.cleanup3 = False
+
+if 'cleanup3' not in st.session_state: 
     cleanup_temp_dir()
-    st.session_state.cleanup = True
+    st.session_state.cleanup3 = True
     
 if 'bbox_confirmed' not in st.session_state:
     st.session_state.bbox_confirmed = False
@@ -150,8 +153,11 @@ if 'new_box' not in st.session_state:
     st.session_state.new_box = None
 if 'dt4' not in st.session_state: 
     st.session_state.dt4 = None
+    
+if 'east_tempfile' not in st.session_state: 
+    st.session_state.east_tempfile = "sampleimages/7east-left.jpeg"
 
-if 'east_tempfile' not in st.session_state:
+if st.session_state.east_tempfile == "sampleimages/7east-left.jpeg":
     temp_image_path = load_image_to_tempfile(st.session_state.segmented_images[3])
     if temp_image_path:
         st.session_state.east_tempfile = temp_image_path
@@ -204,16 +210,9 @@ with c1:
     try: 
         image = Image.open(st.session_state.east_tempfile)
     except Exception as e: 
-        with st.spinner("Your segmented images expired on cloud. You will be re-routed..."):
-            time.sleep(1)
-        if 'rerouted' not in st.session_state: 
-            st.session_state.rerouted = "East"
-        streamlit_js_eval(
-            js_expressions=f"sessionStorage.setItem('seg', `{json.dumps([])}`);",
-            key="save_segua"
-        )
-        time.sleep(0.5)
-        switch_page('estimate')
+        st.session_state.cleanup3 = False
+        st.session_state.east_tempfile = "sampleimages/7east-left.jpeg"
+        st.rerun()
 
     canvas_result = st_canvas(
         fill_color=random_color(),
