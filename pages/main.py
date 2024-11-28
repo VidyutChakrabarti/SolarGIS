@@ -20,7 +20,25 @@ from folium.plugins import LocateControl
 api_key = st.secrets['api_keys']['SOLCAST_API_KEY']
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 
-ee.Initialize(project = 'ee-chakrabartivr')
+service_account_key = {
+    "type": st.secrets["service_account_key"]["type"],
+    "project_id": st.secrets["service_account_key"]["project_id"],
+    "private_key_id": st.secrets["service_account_key"]["private_key_id"],
+    "private_key": st.secrets["service_account_key"]["private_key"],
+    "client_email": st.secrets["service_account_key"]["client_email"],
+    "client_id": st.secrets["service_account_key"]["client_id"],
+    "auth_uri": st.secrets["service_account_key"]["auth_uri"],
+    "token_uri": st.secrets["service_account_key"]["token_uri"],
+    "auth_provider_x509_cert_url": st.secrets["service_account_key"]["auth_provider_x509_cert_url"],
+    "client_x509_cert_url": st.secrets["service_account_key"]["client_x509_cert_url"],
+    "universe_domain": st.secrets["service_account_key"]["universe_domain"],
+}
+
+credentials = ee.ServiceAccountCredentials(
+    email=service_account_key["client_email"],
+    key_data=service_account_key["private_key"],
+)
+ee.Initialize(credentials)
 
 with open("style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
