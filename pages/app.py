@@ -96,14 +96,14 @@ def object_detect(image_url):
         json_resp = resp.json()
         task_uuid = json_resp["data"]["task_uuid"]
 
-        for _ in range(20):
+        for _ in range(60):
             resp = requests.get(f'https://api.deepdataspace.com/task_statuses/{task_uuid}', headers=headers)
             if resp.status_code != 200:
                 break
             json_resp = resp.json()
             if json_resp["data"]["status"] not in ["waiting", "running"]:
                 break
-            time.sleep(1)
+            time.sleep(2)
 
         if json_resp["data"]["status"] == "success":
             results = json_resp["data"]["result"]["objects"]

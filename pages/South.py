@@ -200,6 +200,7 @@ with c2:
 with c1:
     try:
         image = Image.open(st.session_state.south_bytes)
+        image.load()
     except Exception as e: 
         st.session_state.south_bytes = " "
         st.rerun()
