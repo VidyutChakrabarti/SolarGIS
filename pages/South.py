@@ -203,7 +203,7 @@ with c1:
             fill_color=random_color(),
             stroke_width=2,
             stroke_color="#000",
-            background_image=Image.open(st.session_state.south_bytes),
+            background_image=Image.open('./static/South/south.png'),
             update_streamlit=True,
             drawing_mode="rect" if st.session_state.drawing_mode == "Rectangle" else "line",
             width=575,
