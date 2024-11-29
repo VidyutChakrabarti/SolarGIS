@@ -13,7 +13,7 @@ from streamlit_session_browser_storage import SessionStorage
 browsersession = SessionStorage()
 
 
-#ImageFile.LOAD_TRUNCATED_IMAGES = True
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 from helperfuncs import alter_df
 
