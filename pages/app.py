@@ -216,7 +216,7 @@ with left_col:
             st.markdown(" ")
             st.markdown(" ")
             st.form_submit_button("Re-calculate",use_container_width=True)
-        #infer(pv_data)
+        infer(pv_data)
 
 with right_col:
     with st.form(key="graph"):
@@ -289,7 +289,7 @@ with col2:
                     browsersession.setItem("seg", st.session_state.segmented_images, key="save_seg")
                     browsersession.setItem("desc", st.session_state.descriptions, key="save_desc")
                     browsersession.setItem("highpv", st.session_state.highpv, key="save_highest_pv")
-                    time.sleep(0.5)
+                    time.sleep(3)
                     switch_page('North')
 
 if not upload_image or len(uploaded_images) != 4:
