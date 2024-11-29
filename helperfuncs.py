@@ -77,7 +77,7 @@ def fetch_and_store_image(url: str, session_key: str, fallback_page: str):
     try:
         with st.spinner("Fetching segmented image..."):
             response = requests.get(url)
-            response.raise_for_status()  # Raise an HTTPError for bad responses
+            response.raise_for_status()  
             st.session_state[session_key] = BytesIO(response.content)
     except Exception as e:
             st.error("Failed to fetch image from cloud.")

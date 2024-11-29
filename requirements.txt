@@ -16,7 +16,7 @@ Requests
 Shapely
 streamlit==1.37.1
 streamlit_browser_session_storage
-streamlit_drawable_canvas
+streamlit_drawable_canvas==0.9.0
 streamlit_extras
 streamlit_folium
 streamlit_js_eval
