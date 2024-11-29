@@ -259,7 +259,7 @@ if est and st.session_state.bbox_center:
         Browsersession.setItem("boxc", st.session_state.bbox_center, key="save_long")
         Browsersession.setItem("ptype", st.session_state.paneltype, key="save_ptype")
         Browsersession.setItem("npanels", st.session_state.npanels, key="save_no_of_panels")
-        time.sleep(0.5)
+        time.sleep(1)
         switch_page("app")
         
 
