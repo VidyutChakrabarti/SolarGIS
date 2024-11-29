@@ -75,7 +75,7 @@ def fetch_from_session_storage(key, session_state_key, browsersession):
     
 
 def cleanup_temp_dir():
-    temp_dir = "segimgs"
+    temp_dir = "static"
     if os.path.exists(temp_dir):
         try:
             shutil.rmtree(temp_dir)  
@@ -86,7 +86,7 @@ def cleanup_temp_dir():
 
 def load_image_to_tempfile(url):
     with st.spinner("Fetching segmented image..."):
-        temp_dir = "segimgs"
+        temp_dir = "static"
         if not os.path.exists(temp_dir):
             os.makedirs(temp_dir)  
 

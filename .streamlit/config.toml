@@ -5,3 +5,4 @@ primaryColor="#FF4B4B"
 showSidebarNavigation = false
 [server]
 maxUploadSize = 32
+enableStaticServing = true
