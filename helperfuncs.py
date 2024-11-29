@@ -3,11 +3,9 @@ import asyncio
 import aiohttp
 import streamlit as st
 import time
-import os
-import tempfile
 import requests
-import shutil
 from streamlit_extras.switch_page_button import switch_page
+from io import BytesIO
 
 def alter_df(df):
         
@@ -72,37 +70,20 @@ def fetch_from_session_storage(key, session_state_key, browsersession):
         st.session_state[f"{session_state_key}"] = data
     else: 
         raise ValueError("Session key not found.")
-    
-
-def cleanup_temp_dir():
-    temp_dir = "static"
-    if os.path.exists(temp_dir):
-        try:
-            shutil.rmtree(temp_dir)  
-            os.makedirs(temp_dir, exist_ok=True)  
-        except Exception as e:
-            st.error(f"Error while cleaning up the directory: {e}")
 
 
-def load_image_to_tempfile(url):
-    with st.spinner("Fetching segmented image..."):
-        temp_dir = "static"
-        if not os.path.exists(temp_dir):
-            os.makedirs(temp_dir)  
 
-        response = requests.get(url, stream=True)
-        if response.status_code == 200:
-            temp_file = tempfile.NamedTemporaryFile(dir=temp_dir, delete=False, suffix=".png")
-            with open(temp_file.name, 'wb') as f:
-                f.write(response.content) 
-
-            file_name = os.path.abspath(temp_file.name)
-            return file_name
-        else:
+def fetch_and_store_image(url: str, session_key: str, fallback_page: str):
+    try:
+        with st.spinner("Fetching segmented image..."):
+            response = requests.get(url)
+            response.raise_for_status()  # Raise an HTTPError for bad responses
+            st.session_state[session_key] = BytesIO(response.content)
+    except Exception as e:
             st.error("Failed to fetch image from cloud.")
             with st.spinner("An error occurred while fetching your image from the cloud. Re-try segmenting"):
                 time.sleep(1)
-            switch_page('estimate')
+            switch_page(f'{fallback_page}')
             
 
 def mappie(total_cost, inner_value=5000, total_label="Total cost:", inner_label="Monthly savings with Solar:"):

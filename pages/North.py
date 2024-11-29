@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
-from PIL import Image
+from PIL import Image, ImageFile
 import pandas as pd
 from streamlit_extras.switch_page_button import switch_page
 import folium
@@ -8,7 +8,7 @@ from streamlit_folium import st_folium
 from folium.plugins import Draw
 import random
 import time
-from helperfuncs import fetch_from_session_storage, load_image_to_tempfile, cleanup_temp_dir
+from helperfuncs import fetch_from_session_storage, fetch_and_store_image
 from streamlit_session_browser_storage import SessionStorage
 browsersession = SessionStorage()
 
@@ -115,8 +115,6 @@ with placeholder:
         if len(st.session_state.segmented_images)!=4: 
             raise ValueError("The number of segmented images is not 4.")
     except Exception as e:
-        
-        print(e)
         with st.spinner("An error occured... you will be re-routed. Please retry loading this page if image already segmented."):
             time.sleep(1)
         if 'rerouted' not in st.session_state: 
@@ -137,13 +135,6 @@ if 'annotations' not in st.session_state:
     st.session_state.annotations = []
 if 'upis' not in st.session_state: 
     st.session_state.upis = ["sampleimages/1north.jpeg", "sampleimages/3west-left.jpeg", "sampleimages/5south-left.jpeg", "sampleimages/7east-left.jpeg"]
-
-if 'cleanup' not in st.session_state: 
-    st.session_state.cleanup = False
-
-if st.session_state.cleanup == False: 
-    cleanup_temp_dir()
-    st.session_state.cleanup = True
     
 if 'bbox_confirmed' not in st.session_state:
     st.session_state.bbox_confirmed = False
@@ -155,14 +146,10 @@ if 'new_box' not in st.session_state:
     st.session_state.new_box = None
 if 'dt1' not in st.session_state: 
     st.session_state.dt1 = None
-
-if 'north_tempfile' not in st.session_state: 
-    st.session_state.north_tempfile = "sampleimages/1north.jpeg"
-
-if st.session_state.north_tempfile == "sampleimages/1north.jpeg":
-    temp_image_path = load_image_to_tempfile(st.session_state.segmented_images[0])
-    if temp_image_path:
-        st.session_state.north_tempfile = temp_image_path
+if 'north_bytes' not in st.session_state: 
+    st.session_state.north_bytes = " "
+if st.session_state.north_bytes == " ": 
+    fetch_and_store_image(st.session_state.segmented_images[0], 'north_bytes', 'app')
 
 def random_color():
     colors = {
@@ -210,10 +197,9 @@ with c2:
 
 with c1:
     try: 
-        image = Image.open(st.session_state.north_tempfile)
+        image = Image.open(st.session_state.north_bytes)
     except Exception as e:
-        st.session_state.cleanup = False
-        st.session_state.north_tempfile = "sampleimages/1north.jpeg"
+        st.session_state.north_bytes = " "
         st.rerun()
             
     canvas_result = st_canvas(
@@ -270,5 +256,5 @@ with st.form(key='df'):
         st.session_state.new_box = None
         st.session_state.annotations = []
         reset_session_state()
-        cleanup_temp_dir()
+        st.session_state.north_bytes = " "
         switch_page('West')
