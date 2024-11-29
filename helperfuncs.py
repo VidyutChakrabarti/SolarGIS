@@ -2,15 +2,12 @@ import pandas as pd
 import asyncio
 import aiohttp
 import streamlit as st
-from streamlit_js_eval import streamlit_js_eval
-import json
 import time
 import os
 import tempfile
 import requests
 import shutil
 from streamlit_extras.switch_page_button import switch_page
-from streamlit_session_browser_storage import SessionStorage
 
 def alter_df(df):
         

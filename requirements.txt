@@ -1,11 +1,9 @@
-streamlit==1.37.1
 aiohttp
 earthengine_api
 folium
 geopy
 langchain
 langchain_google_genai
-matplotlib
 numpy
 pandas
 Pillow
@@ -16,6 +14,8 @@ pyproj
 pytz
 Requests
 Shapely
+streamlit==1.37.1
+streamlit_browser_session_storage
 streamlit_drawable_canvas
 streamlit_extras
 streamlit_folium
