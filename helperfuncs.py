@@ -10,6 +10,7 @@ import tempfile
 import requests
 import shutil
 from streamlit_extras.switch_page_button import switch_page
+from streamlit_session_browser_storage import SessionStorage
 
 def alter_df(df):
         
@@ -67,20 +68,14 @@ async def main_fetch(latitude, longitude, api_key, npanels):
         return response_radiation, response_pv_power
     
 
-def fetch_from_session_storage(key, session_state_key, uid = 1):
-    #placeholder = st.empty()
-    while key not in st.session_state:
-        #with placeholder:
-        data = streamlit_js_eval(
-            js_expressions=f"sessionStorage.getItem('{key}');",
-            key=f"retrieve_{key}_{uid}",
-            use_return=True
-        )
-        time.sleep(0.3) 
-        if data:
-            st.session_state[session_state_key] = json.loads(data)
-            break
-    #placeholder.empty()
+def fetch_from_session_storage(key, session_state_key, browsersession):
+    bs = browsersession
+    data = bs.getItem(key)
+    if data is not None: 
+        st.session_state[f"{session_state_key}"] = data
+    else: 
+        raise ValueError("Session key not found.")
+    
 
 def cleanup_temp_dir():
     temp_dir = "segimgs"

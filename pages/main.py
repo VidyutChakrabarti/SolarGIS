@@ -11,11 +11,10 @@ import shapely.ops as ops
 from streamlit_extras.switch_page_button import switch_page
 import asyncio
 from helperfuncs import main_fetch
-from streamlit_js_eval import streamlit_js_eval
-import json
 import time
 from folium.plugins import MiniMap
 from folium.plugins import LocateControl
+from streamlit_session_browser_storage import SessionStorage
 
 api_key = st.secrets['api_keys']['SOLCAST_API_KEY']
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
@@ -33,7 +32,7 @@ service_account_key = {
     "client_x509_cert_url": st.secrets["service_account_key"]["client_x509_cert_url"],
     "universe_domain": st.secrets["service_account_key"]["universe_domain"],
 }
-
+Browsersession = SessionStorage()
 credentials = ee.ServiceAccountCredentials(
     email=service_account_key["client_email"],
     key_data=service_account_key["private_key"],
@@ -254,39 +253,19 @@ if est and st.session_state.bbox_center:
     if response_radiation and response_pv_power:
         st.session_state.response_radiation = response_radiation
         st.session_state.response_pv_power = response_pv_power
-        response_pv_power = json.dumps(response_pv_power)
-        response_radiation = json.dumps(response_radiation)
-        streamlit_js_eval(
-            js_expressions=f"sessionStorage.setItem('rad', `{response_radiation}`);",
-            key="save_rad"
-        )
-        streamlit_js_eval(
-            js_expressions=f"sessionStorage.setItem('boxcoords', `{json.dumps(st.session_state.bbox_coords)}`);",
-            key="save_coords"
-        )
-        streamlit_js_eval(
-            js_expressions=f"sessionStorage.setItem('pvpow', `{response_pv_power}`);",
-            key="save_pv"
-        )
-        streamlit_js_eval(
-            js_expressions=f"sessionStorage.setItem('boxc', `{json.dumps(st.session_state.bbox_center)}`);",
-            key="save_long"
-        )
-        streamlit_js_eval(
-            js_expressions=f"sessionStorage.setItem('ptype', `{json.dumps(st.session_state.paneltype)}`);",
-            key="save_ptype"
-        )
-        streamlit_js_eval(
-            js_expressions=f"sessionStorage.setItem('npanels', `{json.dumps(st.session_state.npanels)}`);",
-            key="save_no_of_panels"
-        )
-
-        time.sleep(1)
+        Browsersession.setItem("rad", response_radiation, key="save_rad")
+        Browsersession.setItem("boxcoords", st.session_state.bbox_coords, key="save_coords")
+        Browsersession.setItem("pvpow", response_pv_power, key="save_pv")
+        Browsersession.setItem("boxc", st.session_state.bbox_center, key="save_long")
+        Browsersession.setItem("ptype", st.session_state.paneltype, key="save_ptype")
+        Browsersession.setItem("npanels", st.session_state.npanels, key="save_no_of_panels")
+        time.sleep(0.5)
         switch_page("app")
         
 
 if est and st.session_state.bbox_center is None: 
     st.sidebar.error("Select a bouding box")
+
 
 
 

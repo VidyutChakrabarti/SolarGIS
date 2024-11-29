@@ -7,8 +7,9 @@ from data import *
 from helperfuncs import combine_dataframes
 import pandas as pd
 from helperfuncs import fetch_from_session_storage, mappie
-from streamlit_js_eval import streamlit_js_eval
 import time
+from streamlit_session_browser_storage import SessionStorage
+browsersession = SessionStorage()
 
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 with open("est_style.css") as f:
@@ -17,40 +18,40 @@ with open("est_style.css") as f:
 with st.empty():
     try: 
         if 'segmented_images' not in st.session_state: 
-            fetch_from_session_storage('seg', 'segmented_images')
+            fetch_from_session_storage('seg', 'segmented_images', browsersession)
 
         if 'bbox_coords' not in st.session_state: 
-            fetch_from_session_storage('boxcoords', 'bbox_coords',9)
+            fetch_from_session_storage('boxcoords', 'bbox_coords', browsersession)
 
         if 'dt1' not in st.session_state: 
-            fetch_from_session_storage('dt1', 'dt1')
+            fetch_from_session_storage('dt1', 'dt1', browsersession)
             st.session_state.dt1 = pd.DataFrame(st.session_state.dt1)
 
         if 'dt2' not in st.session_state: 
-            fetch_from_session_storage('dt2', 'dt2')
+            fetch_from_session_storage('dt2', 'dt2', browsersession)
             st.session_state.dt2 = pd.DataFrame(st.session_state.dt2)
 
         if 'dt3' not in st.session_state: 
-            fetch_from_session_storage('dt3', 'dt3')
+            fetch_from_session_storage('dt3', 'dt3', browsersession)
             st.session_state.dt3 = pd.DataFrame(st.session_state.dt3)
 
         if 'dt4' not in st.session_state: 
-            fetch_from_session_storage('dt4', 'dt4')
+            fetch_from_session_storage('dt4', 'dt4', browsersession)
             st.session_state.dt4 = pd.DataFrame(st.session_state.dt4)
 
         if 'descriptions' not in st.session_state: 
-            fetch_from_session_storage('desc','descriptions')
+            fetch_from_session_storage('desc','descriptions', browsersession)
         
         if 'npanels' not in st.session_state: 
-            fetch_from_session_storage('npanels','npanels')
+            fetch_from_session_storage('npanels','npanels', browsersession)
         
         if 'highpv' not in st.session_state: 
-            fetch_from_session_storage('highpv','highpv')
+            fetch_from_session_storage('highpv','highpv', browsersession)
 
     except Exception as e:
         with st.spinner("An exception occured... you will be re-routed. Please retry loading this page if images already segmented."):
             time.sleep(1)
-        switch_page('app')
+        switch_page('East')
 
 if 'bbox_center' not in st.session_state: 
     latitudes = [coord[1] for coord in st.session_state.bbox_coords]
@@ -231,11 +232,9 @@ with st.form(key = 'df'):
         st.session_state.bbox_coords = [[st.session_state.bbox_coords]]
         main_df = pd.DataFrame({'bbox_coords': st.session_state.bbox_coords, 'rect_height': 230, 'line_height': 46, 'estimated_height': 0})
         st.session_state.combined_df = combine_dataframes([main_df, st.session_state.dt1, st.session_state.dt2, st.session_state.dt3, st.session_state.dt4])
-        streamlit_js_eval(
-                        js_expressions=f"sessionStorage.setItem('combined_df', `{st.session_state.combined_df.to_json(orient='records')}`);",
-                        key="save_combdf"
-                    )
-        time.sleep(0.5)
+        intermediate_df = st.session_state.combined_df.to_dict(orient='records')
+        browsersession.setItem("combined_df", intermediate_df, key="save_combdf")
+        time.sleep(0.5)       
         switch_page('final')
 
 

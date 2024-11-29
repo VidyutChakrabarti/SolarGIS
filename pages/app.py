@@ -13,10 +13,10 @@ import requests
 import time
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx
-from streamlit_js_eval import streamlit_js_eval
-import json
 import time
 from helperfuncs import fetch_from_session_storage
+from streamlit_session_browser_storage import SessionStorage
+browsersession = SessionStorage()
 
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 with open("style2.css") as f:
@@ -34,13 +34,13 @@ if 'descriptions' not in st.session_state:
 with st.empty():
     try:
         if 'bbox_center' not in st.session_state: 
-            fetch_from_session_storage('boxc', 'bbox_center')
+            fetch_from_session_storage('boxc', 'bbox_center', browsersession)
             
         if 'response_radiation' not in st.session_state:
-            fetch_from_session_storage('rad', 'response_radiation')
+            fetch_from_session_storage('rad', 'response_radiation', browsersession)
 
         if 'response_pv_power' not in st.session_state:
-            fetch_from_session_storage('pvpow', 'response_pv_power')
+            fetch_from_session_storage('pvpow', 'response_pv_power', browsersession)
     except Exception as e:   
         with st.spinner("Your session memory was deleted. You will be re-routed...."):
             time.sleep(2)
@@ -216,7 +216,7 @@ with left_col:
             st.markdown(" ")
             st.markdown(" ")
             st.form_submit_button("Re-calculate",use_container_width=True)
-        infer(pv_data)
+        #infer(pv_data)
 
 with right_col:
     with st.form(key="graph"):
@@ -286,19 +286,10 @@ with col2:
                 if len(st.session_state.segmented_images) == 4:
                     st.session_state.upis = uploaded_images
             
-                    streamlit_js_eval(
-                        js_expressions=f"sessionStorage.setItem('seg', `{json.dumps(st.session_state.segmented_images)}`);",
-                        key="save_seg"
-                    )
-                    streamlit_js_eval(
-                        js_expressions=f"sessionStorage.setItem('desc', `{json.dumps(st.session_state.descriptions)}`);",
-                        key="save_desc"
-                    )
-                    streamlit_js_eval(
-                        js_expressions=f"sessionStorage.setItem('highpv', `{json.dumps(st.session_state.highpv)}`);",
-                        key="save_highest_pv"
-                    )
-                    time.sleep(1)
+                    browsersession.setItem("seg", st.session_state.segmented_images, key="save_seg")
+                    browsersession.setItem("desc", st.session_state.descriptions, key="save_desc")
+                    browsersession.setItem("highpv", st.session_state.highpv, key="save_highest_pv")
+                    time.sleep(0.5)
                     switch_page('North')
 
 if not upload_image or len(uploaded_images) != 4:
@@ -324,9 +315,9 @@ if not upload_image or len(uploaded_images) != 4:
 
 if 'rerouted' in st.session_state:
     with st.sidebar:   
-        if st.button(f"Retry fetching {st.session_state.rerouted}", help="re-reoute to last page, if images were segmented just now.", use_container_width=True): 
+        if st.button(f"Retry fetching {st.session_state.rerouted}", help="All directions weren't explored.", use_container_width=True): 
             reroute_page = f"{st.session_state.rerouted}"
             switch_page(reroute_page)
  
-        if st.button("Retry Estimation", help = "reroute to /estimate if all images were already segmented.", use_container_width=True): 
+        if st.button("Retry Estimation", help = "Use when all obstacles were selected.", use_container_width=True): 
             switch_page('estimate')

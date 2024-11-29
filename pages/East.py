@@ -7,10 +7,10 @@ import folium
 from streamlit_folium import st_folium
 from folium.plugins import Draw
 import random
-from streamlit_js_eval import streamlit_js_eval
 import time
 from helperfuncs import fetch_from_session_storage, load_image_to_tempfile, cleanup_temp_dir
-import json
+from streamlit_session_browser_storage import SessionStorage
+browsersession = SessionStorage()
 
 # ImageFile.LOAD_TRUNCATED_IMAGES = True
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
@@ -106,10 +106,10 @@ placeholder = st.empty()
 with placeholder:
     try:
         if 'bbox_coords' not in st.session_state: 
-            fetch_from_session_storage('boxcoords', 'bbox_coords',5)
+            fetch_from_session_storage('boxcoords', 'bbox_coords', browsersession)
             
         if 'segmented_images' not in st.session_state: 
-            fetch_from_session_storage('seg', 'segmented_images')
+            fetch_from_session_storage('seg', 'segmented_images', browsersession)
 
         if len(st.session_state.segmented_images)!=4: 
             raise ValueError("The number of segmented images is not 4.")
@@ -118,7 +118,7 @@ with placeholder:
             time.sleep(1)
         if 'rerouted' not in st.session_state: 
             st.session_state.rerouted = "East"
-        switch_page('estimate')
+        switch_page('South')
         
 placeholder.empty()
     
@@ -262,12 +262,10 @@ with st.form(key='df'):
     if next_page:
         st.session_state.annotations = pd.DataFrame(st.session_state.annotations)
         st.session_state.dt4 = alter_df(st.session_state.annotations)
-
-        streamlit_js_eval(
-                        js_expressions=f"sessionStorage.setItem('dt4', `{st.session_state.dt4.to_json(orient='records')}`);",
-                        key="save_dt4"
-                    )
-        time.sleep(1)
+        inter_dt4 = st.session_state.dt4.to_dict(orient='records')
+        browsersession.setItem("dt4",inter_dt4, key="save_dt4")
+        time.sleep(0.5)
+        
         st.session_state.new_box = None
         st.session_state.annotations = []
         reset_session_state()

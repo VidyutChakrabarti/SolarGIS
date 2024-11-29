@@ -16,6 +16,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 from helperfuncs import main_fetch, fetch_from_session_storage, mappie
 import time
+from streamlit_session_browser_storage import SessionStorage
+browsersession = SessionStorage()
 
 api_key = st.secrets['api_keys']['SOLCAST_API_KEY']
 gemapi_key = st.secrets['api_keys']['GEMINI_API_KEY']
@@ -48,16 +50,16 @@ placeholder = st.empty()
 with placeholder:
     try:
         if 'response_radiation' not in st.session_state:
-            fetch_from_session_storage('rad', 'response_radiation')
+            fetch_from_session_storage('rad', 'response_radiation', browsersession)
         if 'response_pv_power' not in st.session_state:
-            fetch_from_session_storage('pvpow', 'response_pv_power')    
+            fetch_from_session_storage('pvpow', 'response_pv_power', browsersession)    
         if 'combined_df' not in st.session_state:
-            fetch_from_session_storage('combined_df', 'combined_df')
+            fetch_from_session_storage('combined_df', 'combined_df', browsersession)
             st.session_state.combined_df = pd.DataFrame(st.session_state.combined_df)    
         if 'bbox_center' not in st.session_state:
-            fetch_from_session_storage('boxc', 'bbox_center',2)
+            fetch_from_session_storage('boxc', 'bbox_center', browsersession)
         if 'paneltype' not in st.session_state:
-            fetch_from_session_storage('ptype', 'paneltype')
+            fetch_from_session_storage('ptype', 'paneltype', browsersession)
     except Exception as e: 
         with st.spinner("An exception occured... you will be re-routed. Please retry loading this page if images already segmented."):
             time.sleep(1.5)
