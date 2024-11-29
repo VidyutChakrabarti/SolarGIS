@@ -195,21 +195,24 @@ with c2:
         st.session_state.new_box = output["all_drawings"][-1]["geometry"]["coordinates"]
         st.session_state.drawing_mode = "Rectangle"
 
-with c1:  
-    try:       
-        canvas_result = st_canvas(
-            fill_color=random_color(),
-            stroke_width=2,
-            stroke_color="#000",
-            background_image=Image.open('./static/north.png'),
-            update_streamlit=True,
-            drawing_mode="rect" if st.session_state.drawing_mode == "Rectangle" else "line",
-            width=575,
-            key="canvas",
-        )
+with c1:
+    try: 
+        image = Image.open(st.session_state.north_bytes)
+
     except Exception as e:
         st.session_state.north_bytes = " "
         st.rerun()
+            
+    canvas_result = st_canvas(
+        fill_color=random_color(),
+        stroke_width=2,
+        stroke_color="#000",
+        background_image=image,
+        update_streamlit=True,
+        drawing_mode="rect" if st.session_state.drawing_mode == "Rectangle" else "line",
+        width=575,
+        key="canvas",
+    )
 
     # Rectangle submission
     if st.button("Select Object", key="submit_rect", disabled=(not st.session_state.bbox_confirmed or st.session_state.drawing_mode != "Rectangle"), use_container_width=True, help='Confirm bounding box first.'):
