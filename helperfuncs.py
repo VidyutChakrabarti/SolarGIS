@@ -78,8 +78,8 @@ def cleanup_temp_dir():
     temp_dir = "segimgs"
     if os.path.exists(temp_dir):
         try:
-            shutil.rmtree(temp_dir)  # Removes all files and subdirectories
-            os.makedirs(temp_dir, exist_ok=True)  # Optionally recreate the directory
+            shutil.rmtree(temp_dir)  
+            os.makedirs(temp_dir, exist_ok=True)  
         except Exception as e:
             st.error(f"Error while cleaning up the directory: {e}")
 
@@ -87,16 +87,20 @@ def cleanup_temp_dir():
 def load_image_to_tempfile(url):
     with st.spinner("Fetching segmented image..."):
         temp_dir = "segimgs"
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)  
+
         response = requests.get(url, stream=True)
         if response.status_code == 200:
             temp_file = tempfile.NamedTemporaryFile(dir=temp_dir, delete=False, suffix=".png")
             with open(temp_file.name, 'wb') as f:
                 f.write(response.content) 
-            file_name = temp_dir + temp_file.name.split(r"\segimgs")[-1]
+
+            file_name = os.path.abspath(temp_file.name)
             return file_name
         else:
             st.error("Failed to fetch image from cloud.")
-            with st.spinner("An error occured while fetching your image from cloud. Re-try segmenting"):
+            with st.spinner("An error occurred while fetching your image from the cloud. Re-try segmenting"):
                 time.sleep(1)
             switch_page('estimate')
             
