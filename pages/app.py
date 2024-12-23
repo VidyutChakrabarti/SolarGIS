@@ -103,7 +103,7 @@ def object_detect(image_url):
             json_resp = resp.json()
             if json_resp["data"]["status"] not in ["waiting", "running"]:
                 break
-            time.sleep(2)
+            time.sleep(1)
 
         if json_resp["data"]["status"] == "success":
             results = json_resp["data"]["result"]["objects"]
