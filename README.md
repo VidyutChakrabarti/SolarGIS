@@ -30,3 +30,5 @@ Visit: [FeatureCollection](https://developers.google.com/earth-engine/datasets/c
 ee.Initialize(project = '(your project name)')
 ```
 
+The details of the project are covered in this video : https://youtu.be/IiyKUs6mKco
+
