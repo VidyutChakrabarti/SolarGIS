@@ -32,3 +32,12 @@ ee.Initialize(project = '(your project name)')
 
 The details of the project are covered in this video : https://youtu.be/IiyKUs6mKco
 
+The Final outputs after considering shadow coverage area :
+
+![image](https://github.com/user-attachments/assets/cf058bdb-8edc-4078-8d9c-408ecd3f8a0c) <br>
+![image](https://github.com/user-attachments/assets/a4c78610-5118-4c99-b307-ee799fbfd21d) ![image](https://github.com/user-attachments/assets/f9db0cea-532d-4536-84e7-175db3483602)  ![image](https://github.com/user-attachments/assets/42e880cc-0d79-4dff-bc5d-1f91b5cdc888)
+<br>
+
+
+
+
