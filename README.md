@@ -34,7 +34,11 @@ The details of the project are covered in this video : https://youtu.be/IiyKUs6m
 
 The Final outputs after considering shadow coverage area :
 
-![Screenshot 2024-12-26 074352](https://github.com/user-attachments/assets/903af37a-d3f7-4484-8884-7fab8b3a81d4)
+![image](https://github.com/user-attachments/assets/927c9cc3-ca5d-4391-b9c7-50ca324f865f)
+<br>
+![Screenshot 2024-12-26 074458](https://github.com/user-attachments/assets/5e7606c3-a5c1-40c0-a4d9-09a2bfb95614)
+
+
 
 
 
