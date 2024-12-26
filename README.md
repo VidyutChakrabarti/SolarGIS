@@ -30,7 +30,12 @@ Visit: [FeatureCollection](https://developers.google.com/earth-engine/datasets/c
 ee.Initialize(project = '(your project name)')
 ```
 
+## Overview 
+
 The details of the project are covered in this video : https://youtu.be/IiyKUs6mKco
+
+
+## Output :
 
 The Final PV (PhotoVoltaic) output after considering shadow coverage area :
 
