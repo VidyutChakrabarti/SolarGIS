@@ -37,7 +37,6 @@ The Final outputs after considering shadow coverage area :
 ![image](https://github.com/user-attachments/assets/927c9cc3-ca5d-4391-b9c7-50ca324f865f)
 <br> <br><br>
 
-![Screenshot 2024-12-26 074856](https://github.com/user-attachments/assets/f0d24533-c57a-499e-907a-7b464ad54621)
 
 
 
