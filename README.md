@@ -21,6 +21,14 @@ pip install -r requirements.txt
 
 Check out the open-source dataset: [Open Buildings](https://sites.research.google/open-buildings/)
 
+## Deployment: 
+
+Use Google cloud to deploy the project. Once you have configured google cloud project and sdk in your computer, use this command to deploy.
+```bash
+gcloud app deploy
+```
+Deployed version available on streamlit cloud but app doesn't run well due to cloud specifications.  
+
 ## Overview 
 
 The details of the project are covered in this video : https://youtu.be/IiyKUs6mKco

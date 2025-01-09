@@ -103,7 +103,7 @@ def object_detect(image_url):
             json_resp = resp.json()
             if json_resp["data"]["status"] not in ["waiting", "running"]:
                 break
-            time.sleep(1)
+            time.sleep(2)
 
         if json_resp["data"]["status"] == "success":
             results = json_resp["data"]["result"]["objects"]
@@ -289,7 +289,7 @@ with col2:
                     browsersession.setItem("seg", st.session_state.segmented_images, key="save_seg")
                     browsersession.setItem("desc", st.session_state.descriptions, key="save_desc")
                     browsersession.setItem("highpv", st.session_state.highpv, key="save_highest_pv")
-                    time.sleep(3)
+                    time.sleep(2)
                     switch_page('North')
 
 if not upload_image or len(uploaded_images) != 4:

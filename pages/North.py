@@ -253,7 +253,7 @@ with st.form(key='df'):
         st.session_state.dt1 = alter_df(st.session_state.annotations)
         inter_dt1 = st.session_state.dt1.to_dict(orient='records')
         browsersession.setItem("dt1",inter_dt1, key="save_dt1")
-        time.sleep(2)
+        time.sleep(1)
         st.session_state.new_box = None
         st.session_state.annotations = []
         reset_session_state()

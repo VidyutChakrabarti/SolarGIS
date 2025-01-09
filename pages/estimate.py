@@ -234,7 +234,7 @@ with st.form(key = 'df'):
         st.session_state.combined_df = combine_dataframes([main_df, st.session_state.dt1, st.session_state.dt2, st.session_state.dt3, st.session_state.dt4])
         intermediate_df = st.session_state.combined_df.to_dict(orient='records')
         browsersession.setItem("combined_df", intermediate_df, key="save_combdf")
-        time.sleep(2)       
+        time.sleep(1)       
         switch_page('final')
 
 
