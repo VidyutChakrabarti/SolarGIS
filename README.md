@@ -1,4 +1,4 @@
-# Mini-project
+# SolarGIS
 Predicting Rooftop solar energy potential using real time solar irradiance data combined with extracted building footprints. Adjusting PV output taking into consideration partial shading originating from surrounding obstacles such as trees, buildings, etc. 
 
 ### Project Objectives:
@@ -17,18 +17,7 @@ streamlit run solargis.py
 pip install -r requirements.txt
 ```
 
-#### In Python interactive console run: 
-```python
-ee.Authenticate()
-```
-
 Check out the open-source dataset: [Open Buildings](https://sites.research.google/open-buildings/)
-
-#### Set up your google earth engine project: 
-Visit: [FeatureCollection](https://developers.google.com/earth-engine/datasets/catalog/GOOGLE_Research_open-buildings_v3_polygons) and go to the feature collection link where you will be directed to set up your Earth Engine account. Note your project name and pass it as the project parameter within the app.py: 
-```python
-ee.Initialize(project = '(your project name)')
-```
 
 ## Overview 
 
@@ -37,7 +26,7 @@ The details of the project are covered in this video : https://youtu.be/IiyKUs6m
 
 ## Output :
 
-The Final PV (PhotoVoltaic) output after considering shadow coverage area :
+Sample Final PV (PhotoVoltaic) output after considering shadow coverage area :
 
 ![image](https://github.com/user-attachments/assets/927c9cc3-ca5d-4391-b9c7-50ca324f865f)
 <br> <br><br>
