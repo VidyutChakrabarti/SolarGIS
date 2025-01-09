@@ -3,7 +3,9 @@ Predicting Rooftop solar energy potential using real time solar irradiance data 
 
 ### Project Objectives:
 •	Predicting the approximate power output specified number of PV modules can produce when installed on rooftops in given location while also estimating how partial shading can affect the total power generated. 
+•	Aiding resource planners, ordinary citizens and startups to accurately predict solar energy outputs in urban settings, thereby aiding in transition to green energy and fulfillment of UN SDGs.
 •	Building a deep learning model that can output the average solar energy potential of a day when provided with the area of rooftop, average solar irradiance in the location along with heights of objects obstructing sunlight in the specified area. 
+
 
 ## How to Run the App
 To run the Streamlit app, open the terminal inside the folder and use the following command:
