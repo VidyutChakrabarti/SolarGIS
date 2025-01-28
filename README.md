@@ -34,12 +34,11 @@ Deployed version available on streamlit cloud but app doesn't run well due to cl
 The details of the project are covered in this video : https://youtu.be/IiyKUs6mKco
 
 
-## Output :
-
-Gallery: 
+## Gallery :
+ 
 ![Demo](assets/display.gif)
 
-<br><br><br>
+<br>
 
 
 
