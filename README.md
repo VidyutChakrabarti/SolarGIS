@@ -36,10 +36,10 @@ The details of the project are covered in this video : https://youtu.be/IiyKUs6m
 
 ## Output :
 
-Sample Final PV (PhotoVoltaic) output after considering shadow coverage area :
+Gallery: 
+![Demo](assets/display.gif)
 
-![image](https://github.com/user-attachments/assets/927c9cc3-ca5d-4391-b9c7-50ca324f865f)
-<br> <br><br>
+<br><br><br>
 
 
 
