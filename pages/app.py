@@ -142,7 +142,7 @@ def threaded_process_images(uploaded_images):
 
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.0-pro",
+    model="gemini-1.5-pro",
     temperature=0, 
     api_key=gemapi_key)
 
