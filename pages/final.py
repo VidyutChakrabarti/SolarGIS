@@ -453,7 +453,7 @@ with col1:
                 st.session_state.response_pv_power = response_pv_power
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-pro",
+    model="gemini-2.0-flash",
     temperature=0, 
     api_key=gemapi_key)
 
