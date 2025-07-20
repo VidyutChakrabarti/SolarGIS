@@ -224,7 +224,7 @@ for idx, time in enumerate(times):
 
 with c2:
     selected_hour = st.slider(
-    "**Select time to visualize shadows (UTC):**",
+    "**Select time to visualize shadows (IST):**",
     min_value=5.0,
     max_value=19.0,
     value=12.0,
@@ -274,7 +274,7 @@ with c2:
             layers=[layer, shadow_layer],
             tooltip=tooltip  
         ))
-col1, col2 = st.columns([1.9,1])
+col1, col2 = st.columns([1.9,1.3])
 with col2:
     fig = go.Figure()
     shadow_times = times.strftime('%H:%M')
@@ -310,26 +310,18 @@ with col2:
         xaxis=dict(dtick=2, tickangle=-45),
         height=400,
         
-        # Animation settings
-        updatemenus=[{
-            'type': 'buttons',
-            'showactive': False,
-            'x': 0.3, 
-            'y': 1.15,
-            'direction': 'right', 
-            'buttons': [{
-                'label': 'Play',
-                'method': 'animate',
-                'args': [None, {'frame': {'duration': 500, 'redraw': True}, 'fromcurrent': True}]
-            }, {
-                'label': 'Pause',
-                'method': 'animate',
-                'args': [[None], {'frame': {'duration': 0, 'redraw': False}, 'mode': 'immediate'}]
-            }]
-        }]
+        # Simple layout customization
+        plot_bgcolor="white",  # White background for the plot area
+        paper_bgcolor="white",  # White background for the whole figure
+        font=dict(color="black"),  # Black text for all labels
     )
-    fig.frames = frames
-    st.plotly_chart(fig) 
+
+    # If you want to set a simple color for the plot line, you can specify the line color here:
+    fig.update_traces(line=dict(color='blue'))  # You can choose any color like 'blue', 'green', etc.
+
+    # Render the plot without animation
+    st.plotly_chart(fig)
+
     st.session_state.connect = st.selectbox('Type of connection between panels:', ['Parallel','Series'])
 
 
@@ -353,10 +345,12 @@ with col1:
             for entry in data_pv
         ]
         pv_estimates = [entry["pv_estimate"] for entry in data_pv]
+        print(pv_estimates)
 
         df_pv = pd.DataFrame({'Time': times_pv, 'PV Estimate': pv_estimates})
         df_pv = df_pv.sort_values('Time')
         adjusted_df_pv = pd.merge(df_pv, shadow_df, on='Time', how='inner')
+        print(adjusted_df_pv)
         adjusted_df_pv['Adjusted PV Estimate'] = adjusted_df_pv.apply(
             lambda row: max(row['PV Estimate'] * (1 - row['Shadow Coverage (%)'] / 100)*panelcoeff*connectcoeff, 0), axis=1
         )
@@ -453,7 +447,7 @@ with col1:
                 st.session_state.response_pv_power = response_pv_power
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",
+    model="gemini-1.5-pro",
     temperature=0, 
     api_key=gemapi_key)
 

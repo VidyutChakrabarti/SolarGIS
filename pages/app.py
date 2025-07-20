@@ -96,14 +96,14 @@ def object_detect(image_url):
         json_resp = resp.json()
         task_uuid = json_resp["data"]["task_uuid"]
 
-        for _ in range(60):
+        for _ in range(1000):
             resp = requests.get(f'https://api.deepdataspace.com/task_statuses/{task_uuid}', headers=headers)
             if resp.status_code != 200:
                 break
             json_resp = resp.json()
             if json_resp["data"]["status"] not in ["waiting", "running"]:
                 break
-            time.sleep(2)
+            time.sleep(0.5)
 
         if json_resp["data"]["status"] == "success":
             results = json_resp["data"]["result"]["objects"]
@@ -142,7 +142,7 @@ def threaded_process_images(uploaded_images):
 
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",
+    model="gemini-1.5-pro",
     temperature=0, 
     api_key=gemapi_key)
 
@@ -289,7 +289,7 @@ with col2:
                     browsersession.setItem("seg", st.session_state.segmented_images, key="save_seg")
                     browsersession.setItem("desc", st.session_state.descriptions, key="save_desc")
                     browsersession.setItem("highpv", st.session_state.highpv, key="save_highest_pv")
-                    time.sleep(2)
+                    time.sleep(1.5)
                     switch_page('North')
 
 if not upload_image or len(uploaded_images) != 4:

@@ -8,12 +8,12 @@ from streamlit_folium import st_folium
 from folium.plugins import Draw
 import random
 import time
-from helperfuncs import fetch_from_session_storage, fetch_and_store_image
+from helperfuncs import fetch_from_session_storage, load_image_to_tempfile, cleanup_temp_dir
 from streamlit_session_browser_storage import SessionStorage
 browsersession = SessionStorage()
 
 
-ImageFile.LOAD_TRUNCATED_IMAGES = True
+# ImageFile.LOAD_TRUNCATED_IMAGES = True
 st.set_page_config(layout="wide", page_title='SolarGis', page_icon = 'solargislogo.png')
 from helperfuncs import alter_df
 
@@ -135,6 +135,13 @@ if 'annotations' not in st.session_state:
     st.session_state.annotations = []
 if 'upis' not in st.session_state: 
     st.session_state.upis = ["sampleimages/1north.jpeg", "sampleimages/3west-left.jpeg", "sampleimages/5south-left.jpeg", "sampleimages/7east-left.jpeg"]
+
+if 'cleanup1' not in st.session_state: 
+    st.session_state.cleanup1 = False
+
+if st.session_state.cleanup1 == False: 
+    cleanup_temp_dir()
+    st.session_state.cleanup1 = True
     
 if 'bbox_confirmed' not in st.session_state:
     st.session_state.bbox_confirmed = False
@@ -147,10 +154,13 @@ if 'new_box' not in st.session_state:
 if 'dt2' not in st.session_state: 
     st.session_state.dt2 = None
     
-if 'west_bytes' not in st.session_state: 
-    st.session_state.west_bytes = " "
-if st.session_state.west_bytes == " ": 
-    fetch_and_store_image(st.session_state.segmented_images[1], 'west_bytes', 'North')
+if 'west_tempfile' not in st.session_state: 
+    st.session_state.west_tempfile = "sampleimages/3west-left.jpeg"
+
+if st.session_state.west_tempfile == "sampleimages/3west-left.jpeg":
+    temp_image_path = load_image_to_tempfile(st.session_state.segmented_images[1])
+    if temp_image_path:
+        st.session_state.west_tempfile = temp_image_path
 
 def random_color():
     colors = {
@@ -198,10 +208,10 @@ with c2:
 
 with c1:
     try:
-        image = Image.open(st.session_state.west_bytes)
-        
+        image = Image.open(st.session_state.west_tempfile)
     except Exception as e: 
-        st.session_state.west_bytes = " "
+        st.session_state.cleanup1 = False
+        st.session_state.west_tempfile = "sampleimages/3west-left.jpeg"
         st.rerun()
 
     canvas_result = st_canvas(
@@ -258,5 +268,5 @@ with st.form(key='df'):
         st.session_state.new_box = None
         st.session_state.annotations = []
         reset_session_state()
-        st.session_state.west_bytes = " "
+        cleanup_temp_dir()
         switch_page('South')

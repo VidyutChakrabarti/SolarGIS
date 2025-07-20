@@ -19,3 +19,4 @@ streamlit_browser_session_storage
 streamlit_drawable_canvas
 streamlit_extras
 streamlit_folium
+streamlit_js_eval
